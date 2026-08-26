@@ -12,4 +12,4 @@ Full-stack platforma za udomljavanje pasa i mačaka.
 
 ## Status
 
-U izradi.
+U izradi — Faza 0 završena.

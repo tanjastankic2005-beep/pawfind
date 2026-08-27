@@ -1,8 +1,7 @@
-// Nađi mjesta na stranici gdje ćemo pisati
 const petsGrid = document.querySelector('#petsGrid');
 const petsCount = document.querySelector('#petsCount');
 
-// ŠABLON: od jednog ljubimca pravi HTML jedne kartice
+// ŠABLON: od jednog ljubimca pravi HTML kartice
 function createPetCard(pet) {
   return `
     <article class="pet-card">
@@ -29,11 +28,35 @@ function createPetCard(pet) {
   `;
 }
 
-// Uzmi listu, napravi sve kartice, ubaci ih na stranicu
 function renderPets(list) {
   petsGrid.innerHTML = list.map(createPetCard).join('');
   petsCount.textContent = `${list.length} pets available`;
 }
 
-// Pokreni
-renderPets(pets);
+function showMessage(text) {
+  petsGrid.innerHTML = `<p class="state-message">${text}</p>`;
+}
+
+// GLAVNA FUNKCIJA: dovuci podatke i prikaži ih
+async function loadPets() {
+  petsCount.textContent = 'Loading…';
+
+  try {
+    const pets = await getPets();
+
+    if (pets.length === 0) {
+      showMessage('No pets available right now.');
+      petsCount.textContent = '0 pets available';
+      return;
+    }
+
+    renderPets(pets);
+
+  } catch (error) {
+    console.error(error);
+    showMessage('Could not load pets. Is the server running?');
+    petsCount.textContent = 'Something went wrong';
+  }
+}
+
+loadPets();

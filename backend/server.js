@@ -1,25 +1,45 @@
-// 1. Uvozimo Express i alat za putanje
+// OVO MORA BITI PRVI RED
+require('dotenv').config();
+
 const express = require('express');
 const path = require('path');
-const pets = require('./data/pets');
+const pool = require('./database/db');
 
-// 2. Pravimo aplikaciju
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-// 3. MIDDLEWARE: serviraj sve iz foldera frontend
+// Serviraj frontend
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
-// 4. Test ruta — provjera da server živi
+// Test ruta
 app.get('/ping', (req, res) => {
-  res.send('pong! nodemon radi!');
-});
-// API: vrati sve ljubimce
-app.get('/api/pets', (req, res) => {
-  res.json(pets);
+  res.send('pong 🏓');
 });
 
-// 5. Pokrećemo server
-app.listen(PORT, () => {
-  console.log(`✅ Server radi na http://localhost:${PORT}`);
+// API: svi ljubimci — SADA IZ BAZE
+app.get('/api/pets', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT * FROM pets WHERE status = ? ORDER BY created_at DESC',
+      ['available']
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error('Greška pri čitanju ljubimaca:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
 });
+
+// Provjeri konekciju, pa pokreni server
+pool.getConnection()
+  .then(connection => {
+    console.log('✅ Povezana na MySQL bazu');
+    connection.release();
+
+    app.listen(PORT, () => {
+      console.log(`✅ Server radi na http://localhost:${PORT}`);
+    });
+  })
+  .catch(error => {
+    console.error('❌ Ne mogu se spojiti na bazu:', error.message);
+  });

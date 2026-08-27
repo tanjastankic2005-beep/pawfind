@@ -506,3 +506,138 @@ body {
     flex-direction: column;
   }
 }
+/* ============================================
+   14. ZAGLAVLJE PODSTRANICE
+   ============================================ */
+.page-head {
+  padding: var(--space-lg) 0 var(--space-md);
+}
+
+.page-title {
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.page-subtitle {
+  color: var(--navy-soft);
+}
+
+/* ============================================
+   15. MREŽA LJUBIMACA
+   ============================================ */
+.pets-section {
+  padding-bottom: var(--space-xl);
+}
+
+.pets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-md);
+}
+
+/* ============================================
+   16. KARTICA LJUBIMCA
+   ============================================ */
+.pet-card {
+  background-color: var(--white);
+  border: 1px solid var(--blue-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.pet-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.pet-card-image {
+  position: relative;
+  overflow: hidden;
+}
+
+.pet-card-image img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.pet-card:hover .pet-card-image img {
+  transform: scale(1.05);
+}
+
+.fav-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: var(--radius-full);
+  background-color: rgba(255, 255, 255, 0.9);
+  color: var(--navy);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+
+.fav-btn:hover {
+  background-color: var(--white);
+  color: #e5484d;
+  transform: scale(1.1);
+}
+
+.pet-card-body {
+  padding: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.pet-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  margin-bottom: 2px;
+}
+
+.pet-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.pet-location {
+  font-size: 0.85rem;
+  color: var(--navy-soft);
+  white-space: nowrap;
+}
+
+.pet-meta {
+  font-size: 0.85rem;
+  color: var(--primary);
+  font-weight: 600;
+  text-transform: capitalize;
+  margin-bottom: var(--space-xs);
+}
+
+.pet-description {
+  font-size: 0.95rem;
+  color: var(--navy-soft);
+  margin-bottom: var(--space-sm);
+  flex: 1;
+}
+
+.btn-sm {
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  align-self: flex-start;
+}

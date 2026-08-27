@@ -1,0 +1,426 @@
+/* ============================================
+   1. DESIGN TOKENS
+   ============================================ */
+:root {
+  /* Boje */
+  --blue-bg:      #f4f8fd;   /* pozadina stranice */
+  --blue-soft:    #e5eefb;   /* nježna plava ispuna */
+  --blue-border:  #d7e5f7;   /* linije i okviri */
+  --primary:      #2f6fed;   /* glavna plava */
+  --primary-dark: #1e56c8;   /* plava na hover */
+  --navy:         #0f2545;   /* glavni tekst */
+  --navy-soft:    #566a88;   /* sporedni tekst */
+  --white:        #ffffff;
+  --accent:       #f4845f;   /* topli akcenat, koristimo rijetko */
+
+  /* Razmaci */
+  --space-xs: 8px;
+  --space-sm: 16px;
+  --space-md: 24px;
+  --space-lg: 48px;
+  --space-xl: 80px;
+
+  /* Zaobljenje uglova */
+  --radius-sm:   10px;
+  --radius-md:   16px;
+  --radius-lg:   24px;
+  --radius-full: 999px;
+
+  /* Sjene */
+  --shadow-sm: 0 2px 8px rgba(15, 37, 69, 0.06);
+  --shadow-md: 0 8px 24px rgba(15, 37, 69, 0.08);
+  --shadow-lg: 0 20px 48px rgba(15, 37, 69, 0.12);
+}
+
+/* ============================================
+   2. RESET
+   ============================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ============================================
+   3. OSNOVA
+   ============================================ */
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, 'Segoe UI', sans-serif;
+  background-color: var(--blue-bg);
+  color: var(--navy);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+/* ============================================
+   4. ZAGLAVLJE
+   ============================================ */
+.site-header {
+  background-color: var(--white);
+  border-bottom: 1px solid var(--blue-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--navy);
+}
+
+.logo-icon {
+  font-size: 1.5rem;
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.nav-link {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--navy-soft);
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+  color: var(--primary);
+}
+
+.nav-cta {
+  background-color: var(--primary);
+  color: var(--white);
+  padding: 10px 20px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.nav-cta:hover {
+  background-color: var(--primary-dark);
+  color: var(--white);
+  transform: translateY(-1px);
+}
+/* ============================================
+   5. HERO
+   ============================================ */
+.hero {
+  padding: var(--space-xl) 0;
+}
+
+.hero-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+  align-items: center;
+}
+
+.hero-eyebrow {
+  display: inline-block;
+  background-color: var(--blue-soft);
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-sm);
+}
+
+.hero-title {
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  margin-bottom: var(--space-sm);
+}
+
+.hero-text {
+  font-size: 1.1rem;
+  color: var(--navy-soft);
+  max-width: 480px;
+  margin-bottom: var(--space-md);
+}
+
+.hero-actions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.hero-image img {
+  width: 100%;
+  height: 480px;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ============================================
+   6. DUGMAD
+   ============================================ */
+.btn {
+  display: inline-block;
+  padding: 14px 28px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--white);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-ghost {
+  background-color: var(--white);
+  color: var(--navy);
+  border: 1px solid var(--blue-border);
+}
+
+.btn-ghost:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-2px);
+}
+/* ============================================
+   7. SEKCIJE — zajedničko
+   ============================================ */
+.section {
+  padding: var(--space-xl) 0;
+}
+
+.section-alt {
+  background-color: var(--white);
+}
+
+.section-head {
+  max-width: 620px;
+  margin: 0 auto var(--space-lg);
+  text-align: center;
+}
+
+.section-eyebrow {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-xs);
+}
+
+.section-title {
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  margin-bottom: var(--space-sm);
+}
+
+.section-text {
+  color: var(--navy-soft);
+  font-size: 1.05rem;
+}
+
+/* ============================================
+   8. KORACI
+   ============================================ */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-md);
+}
+
+.step-card {
+  background-color: var(--white);
+  border: 1px solid var(--blue-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.step-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background-color: var(--blue-soft);
+  color: var(--primary);
+  font-weight: 700;
+  margin-bottom: var(--space-sm);
+}
+
+.step-title {
+  font-size: 1.15rem;
+  margin-bottom: 4px;
+}
+
+.step-text {
+  color: var(--navy-soft);
+}
+
+/* ============================================
+   9. RAZLOZI
+   ============================================ */
+.reasons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-md);
+}
+
+.reason-card {
+  background-color: var(--blue-bg);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  text-align: center;
+}
+
+.reason-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: var(--space-xs);
+}
+
+.reason-title {
+  font-size: 1.05rem;
+  margin-bottom: 4px;
+}
+
+.reason-text {
+  color: var(--navy-soft);
+  font-size: 0.95rem;
+}
+
+/* ============================================
+   10. CTA TRAKA
+   ============================================ */
+.cta-band {
+  background-color: var(--primary);
+  padding: var(--space-xl) 0;
+}
+
+.cta-inner {
+  text-align: center;
+  color: var(--white);
+}
+
+.cta-title {
+  font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-xs);
+}
+
+.cta-text {
+  opacity: 0.85;
+  margin-bottom: var(--space-md);
+}
+
+.btn-white {
+  background-color: var(--white);
+  color: var(--primary);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-white:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ============================================
+   11. FOOTER
+   ============================================ */
+.site-footer {
+  background-color: var(--white);
+  border-top: 1px solid var(--blue-border);
+  padding: var(--space-lg) 0 var(--space-md);
+}
+
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  padding-bottom: var(--space-md);
+}
+
+.footer-brand {
+  font-weight: 800;
+  font-size: 1.15rem;
+}
+
+.footer-tagline {
+  font-weight: 400;
+  font-size: 0.95rem;
+  color: var(--navy-soft);
+  margin-top: 4px;
+}
+
+.footer-nav {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.footer-nav a {
+  color: var(--navy-soft);
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
+}
+
+.footer-nav a:hover {
+  color: var(--primary);
+}
+
+.footer-bottom {
+  border-top: 1px solid var(--blue-border);
+  padding-top: var(--space-md);
+  color: var(--navy-soft);
+  font-size: 0.9rem;
+  text-align: center;
+}

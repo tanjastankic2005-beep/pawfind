@@ -29,7 +29,25 @@ app.get('/api/pets', async (req, res) => {
     res.status(500).json({ error: 'Database error' });
   }
 });
+// API: jedan ljubimac po ID-u
+app.get('/api/pets/:id', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT * FROM pets WHERE id = ?',
+      [req.params.id]
+    );
 
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Pet not found' });
+    }
+
+    res.json(rows[0]);
+
+  } catch (error) {
+    console.error('Greška pri čitanju ljubimca:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
 // Provjeri konekciju, pa pokreni server
 pool.getConnection()
   .then(connection => {

@@ -1,0 +1,28 @@
+{
+  "name": "pawfind",
+  "version": "1.0.0",
+  "description": "Find your new best friend.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tanjastankic2005-beep/pawfind.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/tanjastankic2005-beep/pawfind/issues"
+  },
+  "homepage": "https://github.com/tanjastankic2005-beep/pawfind#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

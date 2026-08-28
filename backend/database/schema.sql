@@ -33,7 +33,9 @@ CREATE TABLE pets (
 
 CREATE TABLE applications (
   id                INT AUTO_INCREMENT PRIMARY KEY,
-  user_id           INT NOT NULL,
+  user_id           INT NULL,
+  applicant_name    VARCHAR(100),
+  applicant_email   VARCHAR(150),
   pet_id            INT NOT NULL,
   phone             VARCHAR(30),
   city              VARCHAR(100),

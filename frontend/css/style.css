@@ -841,3 +841,192 @@ body {
     margin-left: 0;
   }
 }
+/* ============================================
+   19. FORME
+   ============================================ */
+.form-section {
+  padding: var(--space-md) 0 var(--space-xl);
+}
+
+.container-narrow {
+  max-width: 720px;
+}
+
+/* ---- Ljubimac na vrhu forme ---- */
+.apply-pet {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background-color: var(--white);
+  border: 1px solid var(--blue-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
+  margin-bottom: var(--space-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.apply-pet img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+.apply-pet-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--navy-soft);
+}
+
+.apply-pet-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.apply-pet-meta {
+  color: var(--navy-soft);
+  font-size: 0.9rem;
+  text-transform: capitalize;
+}
+
+/* ---- Forma ---- */
+.form {
+  background-color: var(--white);
+  border: 1px solid var(--blue-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-sm);
+  margin-top: var(--space-md);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-sm);
+}
+
+.form-group {
+  margin-bottom: var(--space-sm);
+  border: none;
+}
+
+.form-group label,
+.form-group legend {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.required {
+  color: #e5484d;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--navy);
+  background-color: var(--blue-bg);
+  border: 1px solid var(--blue-border);
+  border-radius: var(--radius-sm);
+  padding: 11px 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.15);
+}
+
+/* ---- Čekboksi i radio ---- */
+.checkbox,
+.radio {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 400;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.checkbox input,
+.radio input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+/* ---- Poruke o greškama ---- */
+.field-error {
+  color: #e5484d;
+  font-size: 0.85rem;
+  margin-top: 5px;
+  min-height: 1em;
+}
+
+.error-box {
+  background-color: #fdeced;
+  border: 1px solid #f5c2c5;
+  color: #a8262b;
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.error-box ul {
+  margin: 8px 0 0 20px;
+}
+
+/* ---- Poruka o uspjehu ---- */
+.success-box {
+  background-color: var(--white);
+  border: 1px solid var(--blue-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg) var(--space-md);
+  text-align: center;
+  box-shadow: var(--shadow-md);
+}
+
+.success-box h2 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: var(--space-xs);
+}
+
+.success-box p {
+  color: var(--navy-soft);
+  margin-bottom: 6px;
+}
+
+.success-box .btn {
+  margin-top: var(--space-sm);
+}
+
+/* ---- responsive ---- */
+@media (max-width: 700px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .apply-pet {
+    flex-direction: column;
+    text-align: center;
+  }
+}

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apply to adopt — PawFind</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🐾</span>
+        <span class="logo-text">PawFind</span>
+      </a>
+
+      <nav class="main-nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="pets.html" class="nav-link">Browse Pets</a>
+        <a href="favorites.html" class="nav-link">Favorites</a>
+        <a href="login.html" class="nav-link">Log in</a>
+        <a href="register.html" class="nav-link nav-cta">Sign up</a>
+      </nav>
+
+      <button class="nav-toggle" aria-label="Open menu">☰</button>
+
+    </div>
+  </header>
+
+  <main>
+    <section class="form-section">
+      <div class="container container-narrow">
+
+        <a href="pets.html" class="back-link">← Back to all pets</a>
+
+        <!-- Koji ljubimac — puni JavaScript -->
+        <div id="petSummary"></div>
+
+        <h1 class="page-title">Adoption application</h1>
+        <p class="page-subtitle">
+          Tell us a little about your home. The shelter will contact you within a few days.
+        </p>
+
+        <form id="applicationForm" class="form" novalidate>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="applicant_name">Full name <span class="required">*</span></label>
+              <input type="text" id="applicant_name" name="applicant_name">
+              <p class="field-error" id="error-applicant_name"></p>
+            </div>
+
+            <div class="form-group">
+              <label for="applicant_email">Email <span class="required">*</span></label>
+              <input type="email" id="applicant_email" name="applicant_email">
+              <p class="field-error" id="error-applicant_email"></p>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="phone">Phone</label>
+              <input type="tel" id="phone" name="phone">
+            </div>
+
+            <div class="form-group">
+              <label for="city">City</label>
+              <input type="text" id="city" name="city">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="housing_type">Housing type</label>
+            <select id="housing_type" name="housing_type">
+              <option value="">Choose…</option>
+              <option value="apartment">Apartment</option>
+              <option value="house">House</option>
+              <option value="farm">Farm / rural property</option>
+            </select>
+          </div>
+
+          <fieldset class="form-group">
+            <legend>Your home</legend>
+
+            <label class="checkbox">
+              <input type="checkbox" id="has_yard" name="has_yard">
+              <span>I have a yard or garden</span>
+            </label>
+
+            <label class="checkbox">
+              <input type="checkbox" id="has_other_pets" name="has_other_pets">
+              <span>I already have other pets</span>
+            </label>
+
+            <label class="checkbox">
+              <input type="checkbox" id="has_children" name="has_children">
+              <span>There are children in the house</span>
+            </label>
+          </fieldset>
+
+          <div class="form-group">
+            <label for="pet_experience">Experience with pets</label>
+            <textarea id="pet_experience" name="pet_experience" rows="3"
+              placeholder="Have you had pets before?"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="reason">Why do you want to adopt? <span class="required">*</span></label>
+            <textarea id="reason" name="reason" rows="4"
+              placeholder="Tell the shelter a bit about yourself and your home."></textarea>
+            <p class="field-error" id="error-reason"></p>
+          </div>
+
+          <fieldset class="form-group">
+            <legend>Preferred contact method</legend>
+
+            <label class="radio">
+              <input type="radio" name="preferred_contact" value="email" checked>
+              <span>Email</span>
+            </label>
+
+            <label class="radio">
+              <input type="radio" name="preferred_contact" value="phone">
+              <span>Phone</span>
+            </label>
+          </fieldset>
+
+          <button type="submit" class="btn btn-primary" id="submitButton">
+            Send application
+          </button>
+
+        </form>
+
+        <!-- Poruka nakon slanja -->
+        <div id="formMessage"></div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+
+      <div class="footer-brand">
+        <span class="logo-icon">🐾</span> PawFind
+        <p class="footer-tagline">Find your new best friend.</p>
+      </div>
+
+      <nav class="footer-nav">
+        <a href="pets.html">Browse Pets</a>
+        <a href="favorites.html">Favorites</a>
+        <a href="login.html">Log in</a>
+        <a href="register.html">Sign up</a>
+      </nav>
+
+    </div>
+
+    <div class="container footer-bottom">
+      <p>© 2026 PawFind. A student project by Tanja Stankic.</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/applications.js"></script>
+</body>
+</html>

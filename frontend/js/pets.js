@@ -1,4 +1,4 @@
-// ---- Elementi na stranici ----
+// ---- Elementi ----
 const petsGrid  = document.querySelector('#petsGrid');
 const petsCount = document.querySelector('#petsCount');
 
@@ -12,14 +12,24 @@ const personalityFilter = document.querySelector('#personalityFilter');
 const sortSelect        = document.querySelector('#sortSelect');
 const resetButton       = document.querySelector('#resetFilters');
 
+// ---- Stanje ----
+let favoriteIds = [];
+let isLoggedIn  = false;
 
-// ---- Šablon jedne kartice ----
+
+// ---- Šablon kartice ----
 function createPetCard(pet) {
+  const isFavorite = favoriteIds.includes(pet.id);
+
   return `
     <article class="pet-card">
       <div class="pet-card-image">
         <img src="${pet.image}" alt="${pet.name}, a ${pet.age} year old ${pet.species}">
-        <button class="fav-btn" aria-label="Add to favorites">♡</button>
+        <button class="fav-btn ${isFavorite ? 'is-favorite' : ''}"
+                data-pet-id="${pet.id}"
+                aria-label="${isFavorite ? 'Remove from favorites' : 'Add to favorites'}">
+          ${isFavorite ? '♥' : '♡'}
+        </button>
       </div>
 
       <div class="pet-card-body">
@@ -50,7 +60,7 @@ function showMessage(text) {
 }
 
 
-// ---- Pokupi trenutno stanje svih filtera ----
+// ---- Filteri ----
 function getCurrentFilters() {
   return {
     search:      searchInput.value.trim(),
@@ -64,8 +74,6 @@ function getCurrentFilters() {
   };
 }
 
-
-// ---- Glavna funkcija ----
 async function loadPets() {
   petsCount.textContent = 'Loading…';
 
@@ -88,7 +96,54 @@ async function loadPets() {
 }
 
 
-// ---- Pretraga: čekaj da korisnik prestane kucati ----
+// ---- Klik na srce (event delegation) ----
+petsGrid.addEventListener('click', async (event) => {
+  const button = event.target.closest('.fav-btn');
+  if (!button) return;
+
+  if (!isLoggedIn) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const petId = Number(button.dataset.petId);
+  const wasFavorite = favoriteIds.includes(petId);
+
+  // Odmah promijeni izgled — ne čekamo server
+  if (wasFavorite) {
+    favoriteIds = favoriteIds.filter(id => id !== petId);
+    button.classList.remove('is-favorite');
+    button.textContent = '♡';
+  } else {
+    favoriteIds.push(petId);
+    button.classList.add('is-favorite');
+    button.textContent = '♥';
+  }
+
+  try {
+    if (wasFavorite) {
+      await removeFavorite(petId);
+    } else {
+      await addFavorite(petId);
+    }
+  } catch (error) {
+    console.error(error);
+
+    // Nije uspjelo — vrati kako je bilo
+    if (wasFavorite) {
+      favoriteIds.push(petId);
+      button.classList.add('is-favorite');
+      button.textContent = '♥';
+    } else {
+      favoriteIds = favoriteIds.filter(id => id !== petId);
+      button.classList.remove('is-favorite');
+      button.textContent = '♡';
+    }
+  }
+});
+
+
+// ---- Slušači filtera ----
 let searchTimer;
 
 searchInput.addEventListener('input', () => {
@@ -96,33 +151,36 @@ searchInput.addEventListener('input', () => {
   searchTimer = setTimeout(loadPets, 400);
 });
 
-
-// ---- Padajuće liste: reaguj odmah ----
 const allSelects = [
-  speciesFilter,
-  genderFilter,
-  ageFilter,
-  sizeFilter,
-  locationFilter,
-  personalityFilter,
-  sortSelect
+  speciesFilter, genderFilter, ageFilter, sizeFilter,
+  locationFilter, personalityFilter, sortSelect
 ];
 
 allSelects.forEach(select => {
   select.addEventListener('change', loadPets);
 });
 
-
-// ---- Reset ----
 resetButton.addEventListener('click', () => {
   searchInput.value = '';
-  allSelects.forEach(select => {
-    select.value = '';
-  });
+  allSelects.forEach(select => { select.value = ''; });
   sortSelect.value = 'newest';
   loadPets();
 });
 
 
-// ---- Pokreni ----
-loadPets();
+// ---- Start ----
+async function init() {
+  const ids = await getFavoriteIds();
+
+  if (ids === null) {
+    isLoggedIn = false;
+    favoriteIds = [];
+  } else {
+    isLoggedIn = true;
+    favoriteIds = ids;
+  }
+
+  loadPets();
+}
+
+init();

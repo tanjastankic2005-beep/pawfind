@@ -102,3 +102,48 @@ async function getCurrentUser() {
 
   return response.json();
 }
+// =========================================
+//  FAVORITI
+// =========================================
+async function getFavorites() {
+  const response = await fetch('/api/favorites');
+
+  if (response.status === 401) return null;
+
+  if (!response.ok) {
+    throw new Error(`Server je odgovorio sa ${response.status}`);
+  }
+
+  return response.json();
+}
+
+
+async function getFavoriteIds() {
+  const response = await fetch('/api/favorites/ids');
+
+  if (response.status === 401) return null;
+
+  if (!response.ok) {
+    throw new Error(`Server je odgovorio sa ${response.status}`);
+  }
+
+  return response.json();
+}
+
+
+async function addFavorite(petId) {
+  return postJson('/api/favorites', { pet_id: petId });
+}
+
+
+async function removeFavorite(petId) {
+  const response = await fetch(`/api/favorites/${petId}`, {
+    method: 'DELETE'
+  });
+
+  if (!response.ok) {
+    throw new Error(`Server je odgovorio sa ${response.status}`);
+  }
+
+  return response.json();
+}

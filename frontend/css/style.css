@@ -1118,3 +1118,7 @@ body {
 .nav-logout:hover {
   color: var(--primary);
 }
+.fav-btn.is-favorite {
+  color: #e5484d;
+  background-color: var(--white);
+}

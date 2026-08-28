@@ -1335,3 +1335,184 @@ body {
     justify-content: space-between;
   }
 }
+/* ============================================
+   22. ADMIN
+   ============================================ */
+.hidden {
+  display: none !important;
+}
+
+/* ---- Taberi ---- */
+.tabs {
+  display: flex;
+  gap: var(--space-xs);
+  border-bottom: 1px solid var(--blue-border);
+  margin-top: var(--space-md);
+}
+
+.tab {
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--navy-soft);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 14px;
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.tab:hover {
+  color: var(--primary);
+}
+
+.tab.is-active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.tab-panel {
+  padding-top: var(--space-md);
+  padding-bottom: var(--space-xl);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.panel-head .section-subtitle {
+  margin: 0;
+}
+
+/* ---- Forma u adminu ---- */
+.form-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: var(--space-sm);
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+  margin-top: var(--space-sm);
+}
+
+/* ---- Tabela ---- */
+.table-wrap {
+  overflow-x: auto;
+  background-color: var(--white);
+  border: 1px solid var(--blue-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  margin-top: var(--space-sm);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  min-width: 640px;
+}
+
+.admin-table th {
+  text-align: left;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--navy-soft);
+  padding: 12px var(--space-sm);
+  border-bottom: 1px solid var(--blue-border);
+  white-space: nowrap;
+}
+
+.admin-table td {
+  padding: 12px var(--space-sm);
+  border-bottom: 1px solid var(--blue-border);
+  vertical-align: middle;
+}
+
+.admin-table tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-table tbody tr:hover {
+  background-color: var(--blue-bg);
+}
+
+.cell-pet {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.cell-pet img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.cell-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+/* ---- Dugmad kao linkovi ---- */
+.link-btn {
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.2s ease;
+}
+
+.link-btn:hover {
+  background-color: var(--blue-soft);
+}
+
+.link-danger {
+  color: #c62a30;
+}
+
+.link-danger:hover {
+  background-color: #fdeced;
+}
+.status-select {
+  font-family: inherit;
+  font-size: 0.82rem;
+  color: var(--navy);
+  background-color: var(--blue-bg);
+  border: 1px solid var(--blue-border);
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.status-select:hover {
+  border-color: var(--primary);
+}
+
+.status-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.15);
+}

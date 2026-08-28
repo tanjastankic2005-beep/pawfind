@@ -351,6 +351,31 @@ function requireAuth(req, res, next) {
   }
   next();
 }
+// =========================================
+//  MIDDLEWARE: mora biti admin
+// =========================================
+async function requireAdmin(req, res, next) {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: 'You must be logged in.' });
+  }
+
+  try {
+    const [rows] = await pool.query(
+      'SELECT role FROM users WHERE id = ?',
+      [req.session.userId]
+    );
+
+    if (rows.length === 0 || rows[0].role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required.' });
+    }
+
+    next();
+
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+}
 
 
 // =========================================
@@ -478,6 +503,253 @@ app.get('/api/applications/me', requireAuth, async (req, res) => {
 
   } catch (error) {
     console.error('Greška pri čitanju prijava:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+// =========================================
+//  ADMIN: STATISTIKA
+// =========================================
+app.get('/api/admin/stats', requireAdmin, async (req, res) => {
+  try {
+    const [[totalPets]]     = await pool.query('SELECT COUNT(*) AS total FROM pets');
+    const [[availablePets]] = await pool.query("SELECT COUNT(*) AS total FROM pets WHERE status = 'available'");
+    const [[adoptedPets]]   = await pool.query("SELECT COUNT(*) AS total FROM pets WHERE status = 'adopted'");
+    const [[pendingApps]]   = await pool.query("SELECT COUNT(*) AS total FROM applications WHERE status = 'Pending'");
+    const [[approvedApps]]  = await pool.query("SELECT COUNT(*) AS total FROM applications WHERE status = 'Approved'");
+
+    res.json({
+      totalPets:            totalPets.total,
+      availablePets:        availablePets.total,
+      adoptedPets:          adoptedPets.total,
+      pendingApplications:  pendingApps.total,
+      approvedApplications: approvedApps.total
+    });
+
+  } catch (error) {
+    console.error('Greška pri statistici:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// =========================================
+//  ADMIN: SVI LJUBIMCI (i udomljeni)
+// =========================================
+app.get('/api/admin/pets', requireAdmin, async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM pets ORDER BY created_at DESC');
+    res.json(rows);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// =========================================
+//  ADMIN: SVE PRIJAVE (tri tabele)
+// =========================================
+app.get('/api/admin/applications', requireAdmin, async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT
+         applications.id,
+         applications.status,
+         applications.reason,
+         applications.phone,
+         applications.city,
+         applications.housing_type,
+         applications.created_at,
+         applications.applicant_name,
+         applications.applicant_email,
+         users.name   AS user_name,
+         users.email  AS user_email,
+         pets.id      AS pet_id,
+         pets.name    AS pet_name,
+         pets.image   AS pet_image
+       FROM applications
+       JOIN pets ON applications.pet_id = pets.id
+       LEFT JOIN users ON applications.user_id = users.id
+       ORDER BY applications.created_at DESC`
+    );
+
+    res.json(rows);
+
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// =========================================
+//  ADMIN: DODAJ LJUBIMCA
+// =========================================
+app.post('/api/pets', requireAdmin, async (req, res) => {
+  try {
+    const {
+      name, species, breed, age, gender, size, location,
+      description, image, personality, vaccinated, neutered,
+      good_with_kids, good_with_dogs, good_with_cats, status
+    } = req.body;
+
+    const errors = [];
+
+    if (!name || name.trim().length < 1)          errors.push('Name is required.');
+    if (!['dog', 'cat'].includes(species))        errors.push('Species must be dog or cat.');
+    if (age === '' || age === undefined || isNaN(Number(age))) errors.push('Age must be a number.');
+    if (!gender)                                  errors.push('Gender is required.');
+    if (!size)                                    errors.push('Size is required.');
+    if (!location)                                errors.push('Location is required.');
+
+    if (errors.length > 0) {
+      return res.status(400).json({ errors });
+    }
+
+    const [result] = await pool.query(
+      `INSERT INTO pets
+         (name, species, breed, age, gender, size, location, description, image, personality,
+          vaccinated, neutered, good_with_kids, good_with_dogs, good_with_cats, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        name.trim(), species, breed || null, Number(age), gender, size, location,
+        description || null, image || 'images/pet-1.jpg', personality || null,
+        vaccinated ? 1 : 0, neutered ? 1 : 0,
+        good_with_kids ? 1 : 0, good_with_dogs ? 1 : 0, good_with_cats ? 1 : 0,
+        status || 'available'
+      ]
+    );
+
+    res.status(201).json({ id: result.insertId, message: 'Pet created' });
+
+  } catch (error) {
+    console.error('Greška pri dodavanju ljubimca:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// =========================================
+//  ADMIN: IZMIJENI LJUBIMCA
+// =========================================
+app.put('/api/pets/:id', requireAdmin, async (req, res) => {
+  try {
+    const {
+      name, species, breed, age, gender, size, location,
+      description, image, personality, vaccinated, neutered,
+      good_with_kids, good_with_dogs, good_with_cats, status
+    } = req.body;
+
+    const errors = [];
+
+    if (!name || name.trim().length < 1)          errors.push('Name is required.');
+    if (!['dog', 'cat'].includes(species))        errors.push('Species must be dog or cat.');
+    if (age === '' || age === undefined || isNaN(Number(age))) errors.push('Age must be a number.');
+    if (!gender)                                  errors.push('Gender is required.');
+    if (!size)                                    errors.push('Size is required.');
+    if (!location)                                errors.push('Location is required.');
+
+    if (errors.length > 0) {
+      return res.status(400).json({ errors });
+    }
+
+    const [result] = await pool.query(
+      `UPDATE pets SET
+         name = ?, species = ?, breed = ?, age = ?, gender = ?, size = ?, location = ?,
+         description = ?, image = ?, personality = ?,
+         vaccinated = ?, neutered = ?, good_with_kids = ?, good_with_dogs = ?, good_with_cats = ?,
+         status = ?
+       WHERE id = ?`,
+      [
+        name.trim(), species, breed || null, Number(age), gender, size, location,
+        description || null, image || 'images/pet-1.jpg', personality || null,
+        vaccinated ? 1 : 0, neutered ? 1 : 0,
+        good_with_kids ? 1 : 0, good_with_dogs ? 1 : 0, good_with_cats ? 1 : 0,
+        status || 'available',
+        req.params.id
+      ]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Pet not found' });
+    }
+
+    res.json({ message: 'Pet updated' });
+
+  } catch (error) {
+    console.error('Greška pri izmjeni ljubimca:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// =========================================
+//  ADMIN: OBRIŠI LJUBIMCA
+// =========================================
+app.delete('/api/pets/:id', requireAdmin, async (req, res) => {
+  try {
+    const [result] = await pool.query('DELETE FROM pets WHERE id = ?', [req.params.id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Pet not found' });
+    }
+
+    res.json({ message: 'Pet deleted' });
+
+  } catch (error) {
+    console.error('Greška pri brisanju ljubimca:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+// =========================================
+//  ADMIN: PROMJENA STATUSA PRIJAVE
+// =========================================
+const APPLICATION_STATUSES = [
+  'Pending',
+  'Under Review',
+  'Approved',
+  'Rejected',
+  'Completed'
+];
+
+app.patch('/api/applications/:id/status', requireAdmin, async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    // Samo dozvoljene vrijednosti
+    if (!APPLICATION_STATUSES.includes(status)) {
+      return res.status(400).json({
+        error: 'Invalid status.',
+        allowed: APPLICATION_STATUSES
+      });
+    }
+
+    const [result] = await pool.query(
+      'UPDATE applications SET status = ? WHERE id = ?',
+      [status, req.params.id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+
+    // Poslovno pravilo: odobrena prijava → ljubimac je udomljen
+    if (status === 'Approved') {
+      const [[app]] = await pool.query(
+        'SELECT pet_id FROM applications WHERE id = ?',
+        [req.params.id]
+      );
+
+      await pool.query(
+        "UPDATE pets SET status = 'adopted' WHERE id = ?",
+        [app.pet_id]
+      );
+    }
+
+    res.json({ message: 'Status updated', status });
+
+  } catch (error) {
+    console.error('Greška pri promjeni statusa:', error.message);
     res.status(500).json({ error: 'Database error' });
   }
 });

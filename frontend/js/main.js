@@ -21,11 +21,17 @@ async function updateNav() {
 
     const firstName = user.name.split(' ')[0];
 
+    const adminLink = user.role === 'admin'
+      ? '<a href="admin.html" class="nav-link">Admin</a>'
+      : '';
+
     mainNav.innerHTML = `
       <a href="index.html" class="nav-link">Home</a>
       <a href="pets.html" class="nav-link">Browse Pets</a>
       <a href="favorites.html" class="nav-link">Favorites</a>
-<a href="profile.html" class="nav-link">Hi, ${firstName}</a>      <button class="nav-logout" id="logoutButton">Log out</button>
+      ${adminLink}
+      <a href="profile.html" class="nav-link">Hi, ${firstName}</a>
+      <button class="nav-logout" id="logoutButton">Log out</button>
     `;
 
     document.querySelector('#logoutButton').addEventListener('click', async () => {

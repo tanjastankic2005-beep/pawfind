@@ -161,3 +161,97 @@ async function getMyApplications() {
 
   return response.json();
 }
+// =========================================
+//  POMOĆNE ZA PUT I DELETE
+// =========================================
+async function putJson(url, data) {
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    const error = new Error('Request failed');
+    error.status = response.status;
+    error.data = result;
+    throw error;
+  }
+
+  return result;
+}
+
+
+async function deleteRequest(url) {
+  const response = await fetch(url, { method: 'DELETE' });
+  const result = await response.json();
+
+  if (!response.ok) {
+    const error = new Error('Request failed');
+    error.status = response.status;
+    error.data = result;
+    throw error;
+  }
+
+  return result;
+}
+
+
+// =========================================
+//  ADMIN
+// =========================================
+async function getAdminStats() {
+  const response = await fetch('/api/admin/stats');
+  if (!response.ok) throw new Error(`Server je odgovorio sa ${response.status}`);
+  return response.json();
+}
+
+async function getAdminPets() {
+  const response = await fetch('/api/admin/pets');
+  if (!response.ok) throw new Error(`Server je odgovorio sa ${response.status}`);
+  return response.json();
+}
+
+async function getAdminApplications() {
+  const response = await fetch('/api/admin/applications');
+  if (!response.ok) throw new Error(`Server je odgovorio sa ${response.status}`);
+  return response.json();
+}
+
+async function createPet(data) {
+  return postJson('/api/pets', data);
+}
+
+async function updatePet(id, data) {
+  return putJson(`/api/pets/${id}`, data);
+}
+
+async function deletePet(id) {
+  return deleteRequest(`/api/pets/${id}`);
+}
+
+async function patchJson(url, data) {
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    const error = new Error('Request failed');
+    error.status = response.status;
+    error.data = result;
+    throw error;
+  }
+
+  return result;
+}
+
+
+async function updateApplicationStatus(id, status) {
+  return patchJson(`/api/applications/${id}/status`, { status });
+}

@@ -4,6 +4,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const pool = require('./database/db');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -189,7 +190,66 @@ app.post('/api/applications', async (req, res) => {
     res.status(500).json({ error: 'Database error' });
   }
 });
+// API: registracija novog korisnika
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
 
+    // ---- VALIDACIJA ----
+    const errors = [];
+
+    if (!name || name.trim().length < 2) {
+      errors.push('Please enter your name.');
+    }
+
+    if (!email || !email.includes('@')) {
+      errors.push('Please enter a valid email address.');
+    }
+
+    if (!password || password.length < 8) {
+      errors.push('Password must be at least 8 characters.');
+    }
+
+    if (errors.length > 0) {
+      return res.status(400).json({ errors });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    // ---- Postoji li već nalog sa tim emailom? ----
+    const [existing] = await pool.query(
+      'SELECT id FROM users WHERE email = ?',
+      [cleanEmail]
+    );
+
+    if (existing.length > 0) {
+      return res.status(409).json({
+        error: 'An account with this email already exists.'
+      });
+    }
+
+    // ---- HASHIRAJ LOZINKU ----
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // ---- UPIS U BAZU ----
+    const [result] = await pool.query(
+      'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
+      [name.trim(), cleanEmail, passwordHash, 'user']
+    );
+
+    // ---- ODGOVOR BEZ LOZINKE ----
+    res.status(201).json({
+      id: result.insertId,
+      name: name.trim(),
+      email: cleanEmail,
+      role: 'user'
+    });
+
+  } catch (error) {
+    console.error('Greška pri registraciji:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
 // Provjeri konekciju, pa pokreni server
 pool.getConnection()
   .then(connection => {

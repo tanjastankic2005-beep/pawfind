@@ -465,6 +465,8 @@ app.delete('/api/favorites/:petId', requireAuth, async (req, res) => {
   }
 });
 
+
+
 // Provjeri konekciju, pa pokreni server
 pool.getConnection()
   .then(connection => {
@@ -752,4 +754,32 @@ app.patch('/api/applications/:id/status', requireAdmin, async (req, res) => {
     console.error('Greška pri promjeni statusa:', error.message);
     res.status(500).json({ error: 'Database error' });
   }
+});
+
+
+// =========================================
+//  404 — API ruta koja ne postoji
+// =========================================
+app.use('/api', (req, res) => {
+  res.status(404).json({
+    error: 'Endpoint not found',
+    method: req.method,
+    path: req.originalUrl
+  });
+});
+
+
+// =========================================
+//  GLOBALNI ERROR HANDLER
+//  Mora imati TAČNO četiri argumenta
+// =========================================
+app.use((err, req, res, next) => {
+  console.error('💥 Neuhvaćena greška');
+  console.error('   Ruta: ', req.method, req.originalUrl);
+  console.error('   Poruka:', err.message);
+  console.error(err.stack);
+
+  res.status(err.status || 500).json({
+    error: 'Something went wrong on the server.'
+  });
 });

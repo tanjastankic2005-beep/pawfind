@@ -1,25 +1,63 @@
 // SVA komunikacija sa backendom ide kroz ovaj fajl.
 
 // =========================================
-//  POMOĆNA FUNKCIJA ZA SVE POST POZIVE
+//  JEDNA FUNKCIJA ZA SVE ZAHTJEVE
 // =========================================
-async function postJson(url, data) {
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
+async function request(method, url, data = null) {
+  const options = { method };
 
-  const result = await response.json();
+  if (data !== null) {
+    options.headers = { 'Content-Type': 'application/json' };
+    options.body = JSON.stringify(data);
+  }
 
+  let response;
+
+  // 1. Je li request uopšte stigao do servera?
+  try {
+    response = await fetch(url, options);
+  } catch (networkError) {
+    const error = new Error('Cannot reach the server. Is it running?');
+    error.status = 0;
+    throw error;
+  }
+
+  // 2. Pokušaj pročitati tijelo (može biti prazno)
+  let result = null;
+  const text = await response.text();
+
+  if (text) {
+    try {
+      result = JSON.parse(text);
+    } catch (parseError) {
+      result = null;
+    }
+  }
+
+  // 3. Je li server odgovorio greškom?
   if (!response.ok) {
-    const error = new Error('Request failed');
+    const message = (result && result.error)
+      ? result.error
+      : `Request failed with status ${response.status}`;
+
+    const error = new Error(message);
     error.status = response.status;
     error.data = result;
     throw error;
   }
 
   return result;
+}
+
+
+// Za rute gdje neki status NIJE greška nego odgovor
+async function requestOrNull(url, ...okStatuses) {
+  try {
+    return await request('GET', url);
+  } catch (error) {
+    if (okStatuses.includes(error.status)) return null;
+    throw error;
+  }
 }
 
 
@@ -38,28 +76,12 @@ async function getPets(filters = {}) {
   const query = params.toString();
   const url = query ? `/api/pets?${query}` : '/api/pets';
 
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(`Server je odgovorio sa ${response.status}`);
-  }
-
-  return response.json();
+  return request('GET', url);
 }
 
 
 async function getPetById(id) {
-  const response = await fetch(`/api/pets/${id}`);
-
-  if (response.status === 404) {
-    return null;
-  }
-
-  if (!response.ok) {
-    throw new Error(`Server je odgovorio sa ${response.status}`);
-  }
-
-  return response.json();
+  return requestOrNull(`/api/pets/${id}`, 404);
 }
 
 
@@ -67,7 +89,12 @@ async function getPetById(id) {
 //  PRIJAVE ZA UDOMLJAVANJE
 // =========================================
 async function createApplication(data) {
-  return postJson('/api/applications', data);
+  return request('POST', '/api/applications', data);
+}
+
+
+async function getMyApplications() {
+  return requestOrNull('/api/applications/me', 401);
 }
 
 
@@ -75,127 +102,45 @@ async function createApplication(data) {
 //  NALOZI, PRIJAVA I ODJAVA
 // =========================================
 async function registerUser(data) {
-  return postJson('/api/auth/register', data);
+  return request('POST', '/api/auth/register', data);
 }
 
 
 async function loginUser(data) {
-  return postJson('/api/auth/login', data);
+  return request('POST', '/api/auth/login', data);
 }
 
 
 async function logoutUser() {
-  return postJson('/api/auth/logout', {});
+  return request('POST', '/api/auth/logout', {});
 }
 
 
 async function getCurrentUser() {
-  const response = await fetch('/api/auth/me');
-
-  if (response.status === 401) {
-    return null;
-  }
-
-  if (!response.ok) {
-    throw new Error(`Server je odgovorio sa ${response.status}`);
-  }
-
-  return response.json();
+  return requestOrNull('/api/auth/me', 401);
 }
+
+
 // =========================================
 //  FAVORITI
 // =========================================
 async function getFavorites() {
-  const response = await fetch('/api/favorites');
-
-  if (response.status === 401) return null;
-
-  if (!response.ok) {
-    throw new Error(`Server je odgovorio sa ${response.status}`);
-  }
-
-  return response.json();
+  return requestOrNull('/api/favorites', 401);
 }
 
 
 async function getFavoriteIds() {
-  const response = await fetch('/api/favorites/ids');
-
-  if (response.status === 401) return null;
-
-  if (!response.ok) {
-    throw new Error(`Server je odgovorio sa ${response.status}`);
-  }
-
-  return response.json();
+  return requestOrNull('/api/favorites/ids', 401);
 }
 
 
 async function addFavorite(petId) {
-  return postJson('/api/favorites', { pet_id: petId });
+  return request('POST', '/api/favorites', { pet_id: petId });
 }
 
 
 async function removeFavorite(petId) {
-  const response = await fetch(`/api/favorites/${petId}`, {
-    method: 'DELETE'
-  });
-
-  if (!response.ok) {
-    throw new Error(`Server je odgovorio sa ${response.status}`);
-  }
-
-  return response.json();
-}
-// =========================================
-//  MOJE PRIJAVE
-// =========================================
-async function getMyApplications() {
-  const response = await fetch('/api/applications/me');
-
-  if (response.status === 401) return null;
-
-  if (!response.ok) {
-    throw new Error(`Server je odgovorio sa ${response.status}`);
-  }
-
-  return response.json();
-}
-// =========================================
-//  POMOĆNE ZA PUT I DELETE
-// =========================================
-async function putJson(url, data) {
-  const response = await fetch(url, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-
-  const result = await response.json();
-
-  if (!response.ok) {
-    const error = new Error('Request failed');
-    error.status = response.status;
-    error.data = result;
-    throw error;
-  }
-
-  return result;
-}
-
-
-async function deleteRequest(url) {
-  const response = await fetch(url, { method: 'DELETE' });
-  const result = await response.json();
-
-  if (!response.ok) {
-    const error = new Error('Request failed');
-    error.status = response.status;
-    error.data = result;
-    throw error;
-  }
-
-  return result;
+  return request('DELETE', `/api/favorites/${petId}`);
 }
 
 
@@ -203,55 +148,35 @@ async function deleteRequest(url) {
 //  ADMIN
 // =========================================
 async function getAdminStats() {
-  const response = await fetch('/api/admin/stats');
-  if (!response.ok) throw new Error(`Server je odgovorio sa ${response.status}`);
-  return response.json();
+  return request('GET', '/api/admin/stats');
 }
+
 
 async function getAdminPets() {
-  const response = await fetch('/api/admin/pets');
-  if (!response.ok) throw new Error(`Server je odgovorio sa ${response.status}`);
-  return response.json();
+  return request('GET', '/api/admin/pets');
 }
+
 
 async function getAdminApplications() {
-  const response = await fetch('/api/admin/applications');
-  if (!response.ok) throw new Error(`Server je odgovorio sa ${response.status}`);
-  return response.json();
+  return request('GET', '/api/admin/applications');
 }
+
 
 async function createPet(data) {
-  return postJson('/api/pets', data);
+  return request('POST', '/api/pets', data);
 }
+
 
 async function updatePet(id, data) {
-  return putJson(`/api/pets/${id}`, data);
+  return request('PUT', `/api/pets/${id}`, data);
 }
+
 
 async function deletePet(id) {
-  return deleteRequest(`/api/pets/${id}`);
-}
-
-async function patchJson(url, data) {
-  const response = await fetch(url, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-
-  const result = await response.json();
-
-  if (!response.ok) {
-    const error = new Error('Request failed');
-    error.status = response.status;
-    error.data = result;
-    throw error;
-  }
-
-  return result;
+  return request('DELETE', `/api/pets/${id}`);
 }
 
 
 async function updateApplicationStatus(id, status) {
-  return patchJson(`/api/applications/${id}/status`, { status });
+  return request('PATCH', `/api/applications/${id}/status`, { status });
 }

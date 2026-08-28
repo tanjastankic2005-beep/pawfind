@@ -253,8 +253,7 @@ petsTableBody.addEventListener('click', async (event) => {
       await loadStats();
     } catch (error) {
       console.error(error);
-      alert('Could not delete this pet.');
-    }
+    showToast('Could not delete this pet.');    }
   }
 });
 
@@ -311,6 +310,7 @@ adminApplications.addEventListener('change', async (event) => {
 
   try {
     await updateApplicationStatus(id, newStatus);
+    showToast(`Status changed to ${newStatus}`, 'success');
 
     // Oboji oznaku bez ponovnog učitavanja
     const badge = adminApplications.querySelector(`[data-badge-for="${id}"]`);
@@ -325,7 +325,7 @@ adminApplications.addEventListener('change', async (event) => {
 
   } catch (error) {
     console.error(error);
-    alert('Could not update the status.');
+    showToast('Could not update the status.');
     await loadApplicationsList();
   }
 });

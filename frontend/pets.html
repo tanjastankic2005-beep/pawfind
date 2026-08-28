@@ -41,7 +41,75 @@
         <p class="page-subtitle" id="petsCount">Loading…</p>
       </div>
     </section>
+    <section class="filters-section">
+      <div class="container">
+        <div class="filters">
 
+          <input
+            type="search"
+            id="searchInput"
+            class="filter-input"
+            placeholder="Search by name…"
+            aria-label="Search pets by name">
+
+          <select id="speciesFilter" class="filter-select" aria-label="Species">
+            <option value="">All species</option>
+            <option value="dog">Dogs</option>
+            <option value="cat">Cats</option>
+          </select>
+
+          <select id="genderFilter" class="filter-select" aria-label="Gender">
+            <option value="">Any gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+
+          <select id="ageFilter" class="filter-select" aria-label="Age">
+            <option value="">Any age</option>
+            <option value="baby">Baby</option>
+            <option value="young">Young</option>
+            <option value="adult">Adult</option>
+            <option value="senior">Senior</option>
+          </select>
+
+          <select id="sizeFilter" class="filter-select" aria-label="Size">
+            <option value="">Any size</option>
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+          </select>
+
+          <select id="locationFilter" class="filter-select" aria-label="Location">
+            <option value="">Any location</option>
+            <option value="Banja Luka">Banja Luka</option>
+            <option value="Sarajevo">Sarajevo</option>
+            <option value="Tuzla">Tuzla</option>
+            <option value="Mostar">Mostar</option>
+          </select>
+
+          <select id="personalityFilter" class="filter-select" aria-label="Personality">
+            <option value="">Any personality</option>
+            <option value="friendly">Friendly</option>
+            <option value="playful">Playful</option>
+            <option value="calm">Calm</option>
+            <option value="energetic">Energetic</option>
+            <option value="affectionate">Affectionate</option>
+          </select>
+
+          <select id="sortSelect" class="filter-select" aria-label="Sort by">
+            <option value="newest">Newest first</option>
+            <option value="name-asc">Name A–Z</option>
+            <option value="name-desc">Name Z–A</option>
+            <option value="youngest">Youngest first</option>
+            <option value="oldest">Oldest first</option>
+          </select>
+
+          <button id="resetFilters" class="btn btn-ghost btn-sm">Reset</button>
+
+        </div>
+      </div>
+    </section>
+    
     <section class="pets-section">
       <div class="container">
         <!-- KARTICE PIŠE JAVASCRIPT — ovdje je namjerno prazno -->

@@ -14,11 +14,11 @@ VALUES
 
   ('Mia', 'cat', 'Domestic shorthair', 1, 'female', 'small', 'Banja Luka',
    'Playful and talkative. Mia will supervise everything you do, closely.',
-   'images/pet-3.jpg', 'playful', TRUE, FALSE, TRUE, FALSE, TRUE, 'available'),
+   'images/pet-4.jpg', 'playful', TRUE, FALSE, TRUE, FALSE, TRUE, 'available'),
 
-  ('Rex', 'dog', 'German Shepherd mix', 7, 'male', 'large', 'Tuzla',
-   'A senior with a soft heart. Rex asks for little: a warm bed and a slow walk.',
-   'images/pet-4.jpg', 'calm', TRUE, TRUE, TRUE, FALSE, FALSE, 'available'),
+  ('Rex', 'dog', 'Mixed breed', 1, 'male', 'small', 'Tuzla',
+   'A small, playful pup still full of puppy energy. Rex loves to explore and is eager to learn.',
+   'images/pet-3.jpg', 'calm', TRUE, TRUE, TRUE, FALSE, FALSE, 'available'),
 
   ('Nala', 'cat', 'Tabby', 3, 'female', 'small', 'Mostar',
    'Independent but affectionate on her own terms. Loves sunny windowsills.',

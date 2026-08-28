@@ -1,7 +1,19 @@
-const petsGrid = document.querySelector('#petsGrid');
+// ---- Elementi na stranici ----
+const petsGrid  = document.querySelector('#petsGrid');
 const petsCount = document.querySelector('#petsCount');
 
-// ŠABLON: od jednog ljubimca pravi HTML kartice
+const searchInput       = document.querySelector('#searchInput');
+const speciesFilter     = document.querySelector('#speciesFilter');
+const genderFilter      = document.querySelector('#genderFilter');
+const ageFilter         = document.querySelector('#ageFilter');
+const sizeFilter        = document.querySelector('#sizeFilter');
+const locationFilter    = document.querySelector('#locationFilter');
+const personalityFilter = document.querySelector('#personalityFilter');
+const sortSelect        = document.querySelector('#sortSelect');
+const resetButton       = document.querySelector('#resetFilters');
+
+
+// ---- Šablon jedne kartice ----
 function createPetCard(pet) {
   return `
     <article class="pet-card">
@@ -30,23 +42,39 @@ function createPetCard(pet) {
 
 function renderPets(list) {
   petsGrid.innerHTML = list.map(createPetCard).join('');
-  petsCount.textContent = `${list.length} pets available`;
+  petsCount.textContent = `${list.length} ${list.length === 1 ? 'pet' : 'pets'} found`;
 }
 
 function showMessage(text) {
   petsGrid.innerHTML = `<p class="state-message">${text}</p>`;
 }
 
-// GLAVNA FUNKCIJA: dovuci podatke i prikaži ih
+
+// ---- Pokupi trenutno stanje svih filtera ----
+function getCurrentFilters() {
+  return {
+    search:      searchInput.value.trim(),
+    species:     speciesFilter.value,
+    gender:      genderFilter.value,
+    age:         ageFilter.value,
+    size:        sizeFilter.value,
+    location:    locationFilter.value,
+    personality: personalityFilter.value,
+    sort:        sortSelect.value
+  };
+}
+
+
+// ---- Glavna funkcija ----
 async function loadPets() {
   petsCount.textContent = 'Loading…';
 
   try {
-    const pets = await getPets();
+    const pets = await getPets(getCurrentFilters());
 
     if (pets.length === 0) {
-      showMessage('No pets available right now.');
-      petsCount.textContent = '0 pets available';
+      showMessage('No pets match your search. Try changing the filters.');
+      petsCount.textContent = '0 pets found';
       return;
     }
 
@@ -59,4 +87,42 @@ async function loadPets() {
   }
 }
 
+
+// ---- Pretraga: čekaj da korisnik prestane kucati ----
+let searchTimer;
+
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(loadPets, 400);
+});
+
+
+// ---- Padajuće liste: reaguj odmah ----
+const allSelects = [
+  speciesFilter,
+  genderFilter,
+  ageFilter,
+  sizeFilter,
+  locationFilter,
+  personalityFilter,
+  sortSelect
+];
+
+allSelects.forEach(select => {
+  select.addEventListener('change', loadPets);
+});
+
+
+// ---- Reset ----
+resetButton.addEventListener('click', () => {
+  searchInput.value = '';
+  allSelects.forEach(select => {
+    select.value = '';
+  });
+  sortSelect.value = 'newest';
+  loadPets();
+});
+
+
+// ---- Pokreni ----
 loadPets();

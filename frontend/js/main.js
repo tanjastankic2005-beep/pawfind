@@ -1,7 +1,44 @@
-// Mobilna navigacija — otvaranje i zatvaranje menija
+// ---- Mobilna navigacija ----
 const navToggle = document.querySelector('.nav-toggle');
-const mainNav = document.querySelector('.main-nav');
+const mainNav   = document.querySelector('.main-nav');
 
-navToggle.addEventListener('click', () => {
-  mainNav.classList.toggle('open');
-});
+if (navToggle && mainNav) {
+  navToggle.addEventListener('click', () => {
+    mainNav.classList.toggle('open');
+  });
+}
+
+
+// ---- Navigacija za prijavljenog korisnika ----
+async function updateNav() {
+  if (!mainNav) return;
+
+  try {
+    const user = await getCurrentUser();
+
+    // Nije prijavljena — ostavi navigaciju kakva jeste
+    if (!user) return;
+
+    const firstName = user.name.split(' ')[0];
+
+    mainNav.innerHTML = `
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="pets.html" class="nav-link">Browse Pets</a>
+      <a href="favorites.html" class="nav-link">Favorites</a>
+      <span class="nav-user">Hi, ${firstName}</span>
+      <button class="nav-logout" id="logoutButton">Log out</button>
+    `;
+
+    document.querySelector('#logoutButton').addEventListener('click', async () => {
+      await logoutUser();
+      window.location.href = 'index.html';
+    });
+
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+
+// Pokreni tek kad su svi skriptovi učitani
+window.addEventListener('DOMContentLoaded', updateNav);

@@ -1097,3 +1097,24 @@ body {
 .auth-switch a:hover {
   text-decoration: underline;
 }
+.nav-user {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.nav-logout {
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--navy-soft);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.nav-logout:hover {
+  color: var(--primary);
+}

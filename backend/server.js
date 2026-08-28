@@ -5,12 +5,23 @@ const express = require('express');
 const path = require('path');
 const pool = require('./database/db');
 const bcrypt = require('bcryptjs');
+const session = require('express-session');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Raspakuj JSON iz tijela requesta u req.body
 app.use(express.json());
+// Sesije — server pamti ko je prijavljen
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24 * 7   // 7 dana
+  }
+}));
 
 // Serviraj frontend
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
@@ -249,6 +260,82 @@ app.post('/api/auth/register', async (req, res) => {
     console.error('Greška pri registraciji:', error.message);
     res.status(500).json({ error: 'Database error' });
   }
+});
+// ---- PRIJAVA ----
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
+    const [rows] = await pool.query(
+      'SELECT * FROM users WHERE email = ?',
+      [email.trim().toLowerCase()]
+    );
+
+    if (rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    const user = rows[0];
+    const match = await bcrypt.compare(password, user.password);
+
+    if (!match) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    // Zapamti korisnika u sesiji
+    req.session.userId = user.id;
+    req.session.role   = user.role;
+
+    res.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    });
+
+  } catch (error) {
+    console.error('Greška pri prijavi:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// ---- KO SAM JA ----
+app.get('/api/auth/me', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+
+    const [rows] = await pool.query(
+      'SELECT id, name, email, role, created_at FROM users WHERE id = ?',
+      [req.session.userId]
+    );
+
+    if (rows.length === 0) {
+      req.session.destroy(() => {});
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+
+    res.json(rows[0]);
+
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// ---- ODJAVA ----
+app.post('/api/auth/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.clearCookie('connect.sid');
+    res.json({ message: 'Logged out' });
+  });
 });
 // Provjeri konekciju, pa pokreni server
 pool.getConnection()

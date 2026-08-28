@@ -170,12 +170,16 @@ app.post('/api/applications', async (req, res) => {
     }
 
     // ---- UPIS U BAZU ----
+    // ---- UPIS U BAZU ----
+    const userId = req.session.userId || null;
+
     const [result] = await pool.query(
       `INSERT INTO applications
-         (pet_id, applicant_name, applicant_email, phone, city, housing_type,
+         (user_id, pet_id, applicant_name, applicant_email, phone, city, housing_type,
           has_yard, has_other_pets, has_children, pet_experience, reason, preferred_contact)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
+        userId,
         pet_id,
         applicant_name.trim(),
         applicant_email.trim(),
@@ -449,3 +453,31 @@ pool.getConnection()
   .catch(error => {
     console.error('❌ Ne mogu se spojiti na bazu:', error.message);
   });
+  // ---- MOJE PRIJAVE ----
+app.get('/api/applications/me', requireAuth, async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT
+         applications.id,
+         applications.status,
+         applications.reason,
+         applications.created_at,
+         pets.id      AS pet_id,
+         pets.name    AS pet_name,
+         pets.image   AS pet_image,
+         pets.species AS pet_species,
+         pets.location AS pet_location
+       FROM applications
+       JOIN pets ON applications.pet_id = pets.id
+       WHERE applications.user_id = ?
+       ORDER BY applications.created_at DESC`,
+      [req.session.userId]
+    );
+
+    res.json(rows);
+
+  } catch (error) {
+    console.error('Greška pri čitanju prijava:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});

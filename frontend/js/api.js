@@ -147,3 +147,17 @@ async function removeFavorite(petId) {
 
   return response.json();
 }
+// =========================================
+//  MOJE PRIJAVE
+// =========================================
+async function getMyApplications() {
+  const response = await fetch('/api/applications/me');
+
+  if (response.status === 401) return null;
+
+  if (!response.ok) {
+    throw new Error(`Server je odgovorio sa ${response.status}`);
+  }
+
+  return response.json();
+}

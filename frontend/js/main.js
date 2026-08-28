@@ -25,8 +25,7 @@ async function updateNav() {
       <a href="index.html" class="nav-link">Home</a>
       <a href="pets.html" class="nav-link">Browse Pets</a>
       <a href="favorites.html" class="nav-link">Favorites</a>
-      <span class="nav-user">Hi, ${firstName}</span>
-      <button class="nav-logout" id="logoutButton">Log out</button>
+<a href="profile.html" class="nav-link">Hi, ${firstName}</a>      <button class="nav-logout" id="logoutButton">Log out</button>
     `;
 
     document.querySelector('#logoutButton').addEventListener('click', async () => {

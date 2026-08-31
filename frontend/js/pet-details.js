@@ -6,61 +6,87 @@ function showMessage(text) {
 
 // MySQL vraća 1 i 0 umjesto true/false
 function yesNo(value) {
-  return value === 1 ? '✓ Yes' : '✕ No';
+  return value === 1 ? t('petDetails.yes') : t('petDetails.no');
 }
 
 function renderPet(pet) {
   document.title = `${pet.name} — PawFind`;
 
+  const images = (pet.images && pet.images.length > 0)
+    ? pet.images.map(img => img.image)
+    : [pet.image];
+
+  const thumbsHtml = images.length > 1
+    ? `
+      <div class="detail-thumbs">
+        ${images.map((src, index) => `
+          <button type="button" class="detail-thumb ${index === 0 ? 'is-active' : ''}" data-src="${src}">
+            <img src="${src}" alt="">
+          </button>
+        `).join('')}
+      </div>
+    `
+    : '';
+
   petDetail.innerHTML = `
     <div class="detail-grid">
 
       <div class="detail-image">
-        <img src="${pet.image}" alt="${pet.name}, a ${pet.age} year old ${pet.species}">
+        <img id="detailMainImage" src="${images[0]}" alt="${pet.name}, a ${pet.age} year old ${pet.species}">
+        ${thumbsHtml}
       </div>
 
       <div class="detail-info">
 
-        <p class="detail-eyebrow">${pet.species} · ${pet.breed || 'Mixed breed'}</p>
+        <p class="detail-eyebrow">${tSpecies(pet.species)} · ${pet.breed || t('petDetails.mixedBreed')}</p>
         <h1 class="detail-name">${pet.name}</h1>
         <p class="detail-location">📍 ${pet.location}</p>
 
         <div class="detail-facts">
           <div class="fact">
-            <span class="fact-label">Age</span>
-            <span class="fact-value">${pet.age} ${pet.age === 1 ? 'year' : 'years'}</span>
+            <span class="fact-label">${t('petDetails.age')}</span>
+            <span class="fact-value">${pet.age} ${tYearsWord(pet.age)}</span>
           </div>
           <div class="fact">
-            <span class="fact-label">Gender</span>
-            <span class="fact-value">${pet.gender}</span>
+            <span class="fact-label">${t('petDetails.gender')}</span>
+            <span class="fact-value">${tGender(pet.gender)}</span>
           </div>
           <div class="fact">
-            <span class="fact-label">Size</span>
-            <span class="fact-value">${pet.size}</span>
+            <span class="fact-label">${t('petDetails.size')}</span>
+            <span class="fact-value">${tSize(pet.size)}</span>
           </div>
           <div class="fact">
-            <span class="fact-label">Personality</span>
-            <span class="fact-value">${pet.personality || '—'}</span>
+            <span class="fact-label">${t('petDetails.personality')}</span>
+            <span class="fact-value">${tPersonality(pet.personality)}</span>
           </div>
         </div>
 
-        <p class="detail-description">${pet.description}</p>
+        <p class="detail-description">${tDescription(pet)}</p>
 
-        <h2 class="detail-subtitle">Good to know</h2>
+        <h2 class="detail-subtitle">${t('petDetails.goodToKnow')}</h2>
         <ul class="detail-list">
-          <li><span>Vaccinated</span> <strong>${yesNo(pet.vaccinated)}</strong></li>
-          <li><span>Neutered / spayed</span> <strong>${yesNo(pet.neutered)}</strong></li>
-          <li><span>Good with kids</span> <strong>${yesNo(pet.good_with_kids)}</strong></li>
-          <li><span>Good with dogs</span> <strong>${yesNo(pet.good_with_dogs)}</strong></li>
-          <li><span>Good with cats</span> <strong>${yesNo(pet.good_with_cats)}</strong></li>
+          <li><span>${t('petDetails.vaccinated')}</span> <strong>${yesNo(pet.vaccinated)}</strong></li>
+          <li><span>${t('petDetails.neutered')}</span> <strong>${yesNo(pet.neutered)}</strong></li>
+          <li><span>${t('petDetails.goodWithKids')}</span> <strong>${yesNo(pet.good_with_kids)}</strong></li>
+          <li><span>${t('petDetails.goodWithDogs')}</span> <strong>${yesNo(pet.good_with_dogs)}</strong></li>
+          <li><span>${t('petDetails.goodWithCats')}</span> <strong>${yesNo(pet.good_with_cats)}</strong></li>
         </ul>
 
-        <a href="apply.html?id=${pet.id}" class="btn btn-primary">Apply to adopt</a>
+        <a href="apply.html?id=${pet.id}" class="btn btn-primary">${t('petDetails.applyButton')}</a>
 
       </div>
 
     </div>
   `;
+
+  const mainImage = document.querySelector('#detailMainImage');
+  petDetail.querySelectorAll('.detail-thumb').forEach(thumb => {
+    thumb.addEventListener('click', () => {
+      mainImage.src = thumb.dataset.src;
+      petDetail.querySelectorAll('.detail-thumb').forEach(thumbEl => thumbEl.classList.remove('is-active'));
+      thumb.classList.add('is-active');
+    });
+  });
 }
 
 async function loadPet() {
@@ -69,17 +95,17 @@ async function loadPet() {
   const id = params.get('id');
 
   if (!id) {
-    showMessage('No pet selected.');
+    showMessage(t('petDetails.noSelection'));
     return;
   }
 
-  showMessage('Loading…');
+  showMessage(t('petDetails.loading'));
 
   try {
     const pet = await getPetById(id);
 
     if (pet === null) {
-      showMessage('This pet is no longer available.');
+      showMessage(t('petDetails.noLongerAvailable'));
       return;
     }
 
@@ -87,8 +113,10 @@ async function loadPet() {
 
   } catch (error) {
     console.error(error);
-    showMessage('Could not load this pet. Is the server running?');
+    showMessage(t('petDetails.couldNotLoad'));
   }
 }
 
 loadPet();
+
+window.addEventListener('pawfind:langchange', loadPet);

@@ -33,29 +33,29 @@ if (registerForm) {
     let valid = true;
 
     if (name.trim().length < 2) {
-      showFieldError('name', 'Please enter your name.');
+      showFieldError('name', t('auth.nameRequired'));
       valid = false;
     }
 
     if (!email.includes('@')) {
-      showFieldError('email', 'Please enter a valid email address.');
+      showFieldError('email', t('auth.emailInvalid'));
       valid = false;
     }
 
     if (password.length < 8) {
-      showFieldError('password', 'Password must be at least 8 characters.');
+      showFieldError('password', t('auth.passwordTooShort'));
       valid = false;
     }
 
     if (password !== password2) {
-      showFieldError('password2', 'Passwords do not match.');
+      showFieldError('password2', t('auth.passwordsMismatch'));
       valid = false;
     }
 
     if (!valid) return;
 
     registerButton.disabled = true;
-    registerButton.textContent = 'Creating account…';
+    registerButton.textContent = t('auth.creatingAccount');
 
     try {
       const user = await registerUser({ name, email, password });
@@ -64,9 +64,9 @@ if (registerForm) {
 
       formMessage.innerHTML = `
         <div class="success-box">
-          <h2>Welcome, ${user.name}! 🐾</h2>
-          <p>Your account has been created.</p>
-          <a href="login.html" class="btn btn-primary">Log in</a>
+          <h2>${t('auth.welcome', { name: user.name })}</h2>
+          <p>${t('auth.accountCreated')}</p>
+          <a href="login.html" class="btn btn-primary">${t('auth.loginButton')}</a>
         </div>
       `;
 
@@ -74,7 +74,7 @@ if (registerForm) {
       console.error(error);
 
       if (error.status === 409) {
-        showFieldError('email', 'An account with this email already exists.');
+        showFieldError('email', t('auth.emailTaken'));
 
       } else if (error.data && error.data.errors) {
         formMessage.innerHTML = `
@@ -86,13 +86,13 @@ if (registerForm) {
       } else {
         formMessage.innerHTML = `
           <div class="error-box">
-            <p>Something went wrong. Please try again.</p>
+            <p>${t('auth.genericError')}</p>
           </div>
         `;
       }
 
       registerButton.disabled = false;
-      registerButton.textContent = 'Create account';
+      registerButton.textContent = t('auth.createAccountButton');
     }
   });
 
@@ -117,19 +117,19 @@ if (loginForm) {
     let valid = true;
 
     if (!email.includes('@')) {
-      showFieldError('loginEmail', 'Please enter a valid email address.');
+      showFieldError('loginEmail', t('auth.emailInvalid'));
       valid = false;
     }
 
     if (password.length === 0) {
-      showFieldError('loginPassword', 'Please enter your password.');
+      showFieldError('loginPassword', t('auth.enterPassword'));
       valid = false;
     }
 
     if (!valid) return;
 
     loginButton.disabled = true;
-    loginButton.textContent = 'Logging in…';
+    loginButton.textContent = t('auth.loggingIn');
 
     try {
       await loginUser({ email, password });
@@ -141,19 +141,19 @@ if (loginForm) {
       if (error.status === 401) {
         formMessage.innerHTML = `
           <div class="error-box">
-            <p>Invalid email or password.</p>
+            <p>${t('auth.invalidCredentials')}</p>
           </div>
         `;
       } else {
         formMessage.innerHTML = `
           <div class="error-box">
-            <p>Something went wrong. Please try again.</p>
+            <p>${t('auth.genericError')}</p>
           </div>
         `;
       }
 
       loginButton.disabled = false;
-      loginButton.textContent = 'Log in';
+      loginButton.textContent = t('auth.loginButton');
     }
   });
 

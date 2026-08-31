@@ -7,7 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🐾%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/style.css">
+
 </head>
 <body>
 
@@ -21,11 +23,11 @@
       </a>
 
       <nav class="main-nav">
-        <a href="index.html" class="nav-link">Home</a>
-        <a href="pets.html" class="nav-link">Browse Pets</a>
-        <a href="favorites.html" class="nav-link">Favorites</a>
-        <a href="login.html" class="nav-link">Log in</a>
-        <a href="register.html" class="nav-link nav-cta">Sign up</a>
+        <a href="index.html" class="nav-link" data-i18n="nav.home">Home</a>
+        <a href="pets.html" class="nav-link" data-i18n="nav.browsePets">Browse Pets</a>
+        <a href="favorites.html" class="nav-link" data-i18n="nav.favorites">Favorites</a>
+        <a href="login.html" class="nav-link" data-i18n="nav.login">Log in</a>
+        <a href="register.html" class="nav-link nav-cta" data-i18n="nav.signup">Sign up</a>
       </nav>
 
        <button class="nav-toggle" aria-label="Open menu">☰</button>
@@ -40,18 +42,18 @@
       <div class="container hero-inner">
 
         <div class="hero-content">
-          <p class="hero-eyebrow">Adopt, don't shop</p>
+          <p class="hero-eyebrow" data-i18n="home.eyebrow">Adopt, don't shop</p>
 
-          <h1 class="hero-title">Find your new best friend.</h1>
+          <h1 class="hero-title" data-i18n="home.title">Find your new best friend.</h1>
 
-          <p class="hero-text">
+          <p class="hero-text" data-i18n="home.text">
             Every pet on PawFind is waiting for someone like you.
             Browse hundreds of rescues, meet the one, and give them a home.
           </p>
 
           <div class="hero-actions">
-            <a href="pets.html" class="btn btn-primary">Find a pet</a>
-            <a href="#how-it-works" class="btn btn-ghost">How it works</a>
+            <a href="pets.html" class="btn btn-primary" data-i18n="home.findPet">Find a pet</a>
+            <a href="#how-it-works" class="btn btn-ghost" data-i18n="home.howItWorks">How it works</a>
           </div>
         </div>
 
@@ -66,9 +68,9 @@
       <div class="container">
 
         <div class="section-head">
-          <p class="section-eyebrow">How adoption works</p>
-          <h2 class="section-title">Three steps to a new best friend</h2>
-          <p class="section-text">
+          <p class="section-eyebrow" data-i18n="home.howEyebrow">How adoption works</p>
+          <h2 class="section-title" data-i18n="home.howTitle">Three steps to a new best friend</h2>
+          <p class="section-text" data-i18n="home.howSubtitle">
             Adopting is simpler than most people think. Here is the whole process.
           </p>
         </div>
@@ -76,24 +78,24 @@
         <div class="steps">
           <article class="step-card">
             <span class="step-number">1</span>
-            <h3 class="step-title">Browse</h3>
-            <p class="step-text">
+            <h3 class="step-title" data-i18n="home.step1Title">Browse</h3>
+            <p class="step-text" data-i18n="home.step1Text">
               Search by species, age, size or city until someone catches your eye.
             </p>
           </article>
 
           <article class="step-card">
             <span class="step-number">2</span>
-            <h3 class="step-title">Apply</h3>
-            <p class="step-text">
+            <h3 class="step-title" data-i18n="home.step2Title">Apply</h3>
+            <p class="step-text" data-i18n="home.step2Text">
               Fill in a short form about your home. It takes about five minutes.
             </p>
           </article>
 
           <article class="step-card">
             <span class="step-number">3</span>
-            <h3 class="step-title">Meet &amp; adopt</h3>
-            <p class="step-text">
+            <h3 class="step-title" data-i18n="home.step3Title">Meet &amp; adopt</h3>
+            <p class="step-text" data-i18n="home.step3Text">
               The shelter contacts you, you meet the pet, and you take them home.
             </p>
           </article>
@@ -107,39 +109,39 @@
       <div class="container">
 
         <div class="section-head">
-          <p class="section-eyebrow">Why adopt</p>
-          <h2 class="section-title">Every adoption saves two lives</h2>
+          <p class="section-eyebrow" data-i18n="home.whyEyebrow">Why adopt</p>
+          <h2 class="section-title" data-i18n="home.whyTitle">Every adoption saves two lives</h2>
         </div>
 
         <div class="reasons">
           <article class="reason-card">
             <span class="reason-icon">🏡</span>
-            <h3 class="reason-title">You give a home</h3>
-            <p class="reason-text">
+            <h3 class="reason-title" data-i18n="home.reason1Title">You give a home</h3>
+            <p class="reason-text" data-i18n="home.reason1Text">
               One pet leaves the shelter, and the free space saves the next one.
             </p>
           </article>
 
           <article class="reason-card">
             <span class="reason-icon">💉</span>
-            <h3 class="reason-title">Ready to go</h3>
-            <p class="reason-text">
+            <h3 class="reason-title" data-i18n="home.reason2Title">Ready to go</h3>
+            <p class="reason-text" data-i18n="home.reason2Text">
               Most rescues are already vaccinated, chipped and health checked.
             </p>
           </article>
 
           <article class="reason-card">
             <span class="reason-icon">💙</span>
-            <h3 class="reason-title">They know</h3>
-            <p class="reason-text">
+            <h3 class="reason-title" data-i18n="home.reason3Title">They know</h3>
+            <p class="reason-text" data-i18n="home.reason3Text">
               Rescued animals bond deeply. Ask anyone who has adopted one.
             </p>
           </article>
 
           <article class="reason-card">
             <span class="reason-icon">🤝</span>
-            <h3 class="reason-title">You support shelters</h3>
-            <p class="reason-text">
+            <h3 class="reason-title" data-i18n="home.reason4Title">You support shelters</h3>
+            <p class="reason-text" data-i18n="home.reason4Text">
               Every adoption frees up food, space and time for animals still waiting.
             </p>
           </article>
@@ -148,12 +150,26 @@
       </div>
     </section>
 
+    <!-- DODAJ LJUBIMCA -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <h2 class="section-title" data-i18n="home.listPetTitle">Have a pet that needs a home?</h2>
+          <p class="section-text" data-i18n="home.listPetText">
+            If you or someone you know can no longer care for a pet, you can list them here.
+            Our team reviews every submission before it goes live.
+          </p>
+          <a href="add-pet.html" class="btn btn-primary" data-i18n="home.listPetButton">List a pet</a>
+        </div>
+      </div>
+    </section>
+
     <!-- POZIV NA AKCIJU -->
     <section class="cta-band">
       <div class="container cta-inner">
-        <h2 class="cta-title">Ready to meet your new best friend?</h2>
-        <p class="cta-text">Hundreds of rescues are waiting right now.</p>
-        <a href="pets.html" class="btn btn-white">Find a pet</a>
+        <h2 class="cta-title" data-i18n="home.ctaTitle">Ready to meet your new best friend?</h2>
+        <p class="cta-text" data-i18n="home.ctaText">Hundreds of rescues are waiting right now.</p>
+        <a href="pets.html" class="btn btn-white" data-i18n="home.ctaButton">Find a pet</a>
       </div>
     </section>
 
@@ -165,23 +181,24 @@
 
       <div class="footer-brand">
         <span class="logo-icon">🐾</span> PawFind
-        <p class="footer-tagline">Find your new best friend.</p>
+        <p class="footer-tagline" data-i18n="footer.tagline">Find your new best friend.</p>
       </div>
 
       <nav class="footer-nav">
-        <a href="pets.html">Browse Pets</a>
-        <a href="favorites.html">Favorites</a>
-        <a href="login.html">Log in</a>
-        <a href="register.html">Sign up</a>
+        <a href="pets.html" data-i18n="nav.browsePets">Browse Pets</a>
+        <a href="favorites.html" data-i18n="nav.favorites">Favorites</a>
+        <a href="login.html" data-i18n="nav.login">Log in</a>
+        <a href="register.html" data-i18n="nav.signup">Sign up</a>
       </nav>
 
     </div>
 
     <div class="container footer-bottom">
-      <p>© 2026 PawFind. A student project by Tanja Stankic.</p>
+      <p data-i18n="footer.copyright">© 2026 PawFind. A student project by Tanja Stankic.</p>
     </div>
   </footer>
-    <script src="js/api.js"></script>
+    <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

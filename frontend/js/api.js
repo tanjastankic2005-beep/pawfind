@@ -6,7 +6,10 @@
 async function request(method, url, data = null) {
   const options = { method };
 
-  if (data !== null) {
+  if (data instanceof FormData) {
+    // Ne postavljaj Content-Type ručno — browser sam doda multipart boundary.
+    options.body = data;
+  } else if (data !== null) {
     options.headers = { 'Content-Type': 'application/json' };
     options.body = JSON.stringify(data);
   }
@@ -179,4 +182,35 @@ async function deletePet(id) {
 
 async function updateApplicationStatus(id, status) {
   return request('PATCH', `/api/applications/${id}/status`, { status });
+}
+
+
+// =========================================
+//  KONTAKT
+// =========================================
+async function sendContactMessage(data) {
+  return request('POST', '/api/contact', data);
+}
+
+
+async function getAdminMessages() {
+  return request('GET', '/api/admin/messages');
+}
+
+
+async function deleteAdminMessage(id) {
+  return request('DELETE', `/api/admin/messages/${id}`);
+}
+
+
+async function replyToAdminMessage(id, reply) {
+  return request('PATCH', `/api/admin/messages/${id}/reply`, { reply });
+}
+
+
+// =========================================
+//  DODAVANJE LJUBIMCA (prijavljeni korisnici)
+// =========================================
+async function submitPet(data) {
+  return request('POST', '/api/pets/submit', data);
 }

@@ -14,6 +14,7 @@ const authRoutes         = require('./routes/auth');
 const applicationsRoutes = require('./routes/applications');
 const favoritesRoutes    = require('./routes/favorites');
 const adminRoutes        = require('./routes/admin');
+const contactRoutes      = require('./routes/contact');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -43,6 +44,7 @@ app.use('/api/auth',         authRoutes);
 app.use('/api/applications', applicationsRoutes);
 app.use('/api/favorites',    favoritesRoutes);
 app.use('/api/admin',        adminRoutes);
+app.use('/api/contact',      contactRoutes);
 
 
 // ---------- 404 za nepostojeće API rute ----------

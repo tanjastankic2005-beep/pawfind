@@ -7,7 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🐾%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/style.css">
+
 </head>
 <body>
 
@@ -20,11 +22,11 @@
       </a>
 
       <nav class="main-nav">
-        <a href="index.html" class="nav-link">Home</a>
-        <a href="pets.html" class="nav-link">Browse Pets</a>
-        <a href="favorites.html" class="nav-link">Favorites</a>
-        <a href="login.html" class="nav-link">Log in</a>
-        <a href="register.html" class="nav-link nav-cta">Sign up</a>
+        <a href="index.html" class="nav-link" data-i18n="nav.home">Home</a>
+        <a href="pets.html" class="nav-link" data-i18n="nav.browsePets">Browse Pets</a>
+        <a href="favorites.html" class="nav-link" data-i18n="nav.favorites">Favorites</a>
+        <a href="login.html" class="nav-link" data-i18n="nav.login">Log in</a>
+        <a href="register.html" class="nav-link nav-cta" data-i18n="nav.signup">Sign up</a>
       </nav>
 
       <button class="nav-toggle" aria-label="Open menu">☰</button>
@@ -36,7 +38,7 @@
 
     <section class="page-head">
       <div class="container">
-        <h1 class="page-title">My favourites</h1>
+        <h1 class="page-title" data-i18n="favorites.pageTitle">My favourites</h1>
         <p class="page-subtitle" id="favCount">Loading…</p>
       </div>
     </section>
@@ -54,23 +56,24 @@
 
       <div class="footer-brand">
         <span class="logo-icon">🐾</span> PawFind
-        <p class="footer-tagline">Find your new best friend.</p>
+        <p class="footer-tagline" data-i18n="footer.tagline">Find your new best friend.</p>
       </div>
 
       <nav class="footer-nav">
-        <a href="pets.html">Browse Pets</a>
-        <a href="favorites.html">Favorites</a>
-        <a href="login.html">Log in</a>
-        <a href="register.html">Sign up</a>
+        <a href="pets.html" data-i18n="nav.browsePets">Browse Pets</a>
+        <a href="favorites.html" data-i18n="nav.favorites">Favorites</a>
+        <a href="login.html" data-i18n="nav.login">Log in</a>
+        <a href="register.html" data-i18n="nav.signup">Sign up</a>
       </nav>
 
     </div>
 
     <div class="container footer-bottom">
-      <p>© 2026 PawFind. A student project by Tanja Stankic.</p>
+      <p data-i18n="footer.copyright">© 2026 PawFind. A student project by Tanja Stankic.</p>
     </div>
   </footer>
 
+  <script src="js/i18n.js"></script>
   <script src="js/api.js"></script>
   <script src="js/main.js"></script>
   <script src="js/favorites.js"></script>

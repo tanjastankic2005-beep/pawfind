@@ -7,7 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🐾%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/style.css">
+
 </head>
 <body>
 
@@ -20,11 +22,11 @@
       </a>
 
       <nav class="main-nav">
-        <a href="index.html" class="nav-link">Home</a>
-        <a href="pets.html" class="nav-link">Browse Pets</a>
-        <a href="favorites.html" class="nav-link">Favorites</a>
-        <a href="login.html" class="nav-link">Log in</a>
-        <a href="register.html" class="nav-link nav-cta">Sign up</a>
+        <a href="index.html" class="nav-link" data-i18n="nav.home">Home</a>
+        <a href="pets.html" class="nav-link" data-i18n="nav.browsePets">Browse Pets</a>
+        <a href="favorites.html" class="nav-link" data-i18n="nav.favorites">Favorites</a>
+        <a href="login.html" class="nav-link" data-i18n="nav.login">Log in</a>
+        <a href="register.html" class="nav-link nav-cta" data-i18n="nav.signup">Sign up</a>
       </nav>
 
       <button class="nav-toggle" aria-label="Open menu">☰</button>
@@ -38,39 +40,39 @@
 
         <div class="auth-card">
 
-          <h1 class="auth-title">Create your account</h1>
-          <p class="auth-subtitle">
+          <h1 class="auth-title" data-i18n="auth.registerTitle">Create your account</h1>
+          <p class="auth-subtitle" data-i18n="auth.registerSubtitle">
             Save your favourite pets and follow your adoption applications.
           </p>
 
           <form id="registerForm" class="form form-flat" novalidate>
 
             <div class="form-group">
-              <label for="name">Full name <span class="required">*</span></label>
+              <label for="name"><span data-i18n="auth.fullNameLabel">Full name</span> <span class="required">*</span></label>
               <input type="text" id="name" name="name" autocomplete="name">
               <p class="field-error" id="error-name"></p>
             </div>
 
             <div class="form-group">
-              <label for="email">Email <span class="required">*</span></label>
+              <label for="email"><span data-i18n="auth.emailLabel">Email</span> <span class="required">*</span></label>
               <input type="email" id="email" name="email" autocomplete="email">
               <p class="field-error" id="error-email"></p>
             </div>
 
             <div class="form-group">
-              <label for="password">Password <span class="required">*</span></label>
+              <label for="password"><span data-i18n="auth.passwordLabel">Password</span> <span class="required">*</span></label>
               <input type="password" id="password" name="password" autocomplete="new-password">
-              <p class="field-hint">At least 8 characters.</p>
+              <p class="field-hint" data-i18n="auth.passwordHint">At least 8 characters.</p>
               <p class="field-error" id="error-password"></p>
             </div>
 
             <div class="form-group">
-              <label for="password2">Repeat password <span class="required">*</span></label>
+              <label for="password2"><span data-i18n="auth.repeatPasswordLabel">Repeat password</span> <span class="required">*</span></label>
               <input type="password" id="password2" name="password2" autocomplete="new-password">
               <p class="field-error" id="error-password2"></p>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-block" id="registerButton">
+            <button type="submit" class="btn btn-primary btn-block" id="registerButton" data-i18n="auth.createAccountButton">
               Create account
             </button>
 
@@ -79,7 +81,7 @@
           <div id="formMessage"></div>
 
           <p class="auth-switch">
-            Already have an account? <a href="login.html">Log in</a>
+            <span data-i18n="auth.alreadyHaveAccount">Already have an account?</span> <a href="login.html" data-i18n="auth.logIn">Log in</a>
           </p>
 
         </div>
@@ -93,23 +95,24 @@
 
       <div class="footer-brand">
         <span class="logo-icon">🐾</span> PawFind
-        <p class="footer-tagline">Find your new best friend.</p>
+        <p class="footer-tagline" data-i18n="footer.tagline">Find your new best friend.</p>
       </div>
 
       <nav class="footer-nav">
-        <a href="pets.html">Browse Pets</a>
-        <a href="favorites.html">Favorites</a>
-        <a href="login.html">Log in</a>
-        <a href="register.html">Sign up</a>
+        <a href="pets.html" data-i18n="nav.browsePets">Browse Pets</a>
+        <a href="favorites.html" data-i18n="nav.favorites">Favorites</a>
+        <a href="login.html" data-i18n="nav.login">Log in</a>
+        <a href="register.html" data-i18n="nav.signup">Sign up</a>
       </nav>
 
     </div>
 
     <div class="container footer-bottom">
-      <p>© 2026 PawFind. A student project by Tanja Stankic.</p>
+      <p data-i18n="footer.copyright">© 2026 PawFind. A student project by Tanja Stankic.</p>
     </div>
   </footer>
 
+  <script src="js/i18n.js"></script>
   <script src="js/main.js"></script>
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>

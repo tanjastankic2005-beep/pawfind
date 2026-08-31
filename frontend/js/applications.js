@@ -11,7 +11,7 @@ const petId  = params.get('id');
 // ---- Pokaži za kojeg ljubimca se prijavljuje ----
 async function loadPetSummary() {
   if (!petId) {
-    petSummary.innerHTML = `<p class="state-message">No pet selected.</p>`;
+    petSummary.innerHTML = `<p class="state-message">${t('apply.noSelection')}</p>`;
     return;
   }
 
@@ -19,7 +19,7 @@ async function loadPetSummary() {
     const pet = await getPetById(petId);
 
     if (!pet) {
-      petSummary.innerHTML = `<p class="state-message">This pet is no longer available.</p>`;
+      petSummary.innerHTML = `<p class="state-message">${t('apply.noLongerAvailable')}</p>`;
       return;
     }
 
@@ -27,10 +27,10 @@ async function loadPetSummary() {
       <div class="apply-pet">
         <img src="${pet.image}" alt="${pet.name}">
         <div>
-          <p class="apply-pet-label">You are applying to adopt</p>
+          <p class="apply-pet-label">${t('apply.applyingTo')}</p>
           <h2 class="apply-pet-name">${pet.name}</h2>
           <p class="apply-pet-meta">
-            ${pet.species} · ${pet.age} ${pet.age === 1 ? 'year' : 'years'} · ${pet.location}
+            ${tSpecies(pet.species)} · ${pet.age} ${tYearsWord(pet.age)} · ${pet.location}
           </p>
         </div>
       </div>
@@ -60,17 +60,17 @@ function validate(data) {
   let valid = true;
 
   if (data.applicant_name.trim().length < 2) {
-    showFieldError('applicant_name', 'Please enter your full name.');
+    showFieldError('applicant_name', t('apply.nameError'));
     valid = false;
   }
 
   if (!data.applicant_email.includes('@')) {
-    showFieldError('applicant_email', 'Please enter a valid email address.');
+    showFieldError('applicant_email', t('apply.emailError'));
     valid = false;
   }
 
   if (data.reason.trim().length < 10) {
-    showFieldError('reason', 'Please write at least 10 characters.');
+    showFieldError('reason', t('apply.reasonError'));
     valid = false;
   }
 
@@ -101,7 +101,7 @@ form.addEventListener('submit', async (event) => {
   if (!validate(data)) return;
 
   submitButton.disabled = true;
-  submitButton.textContent = 'Sending…';
+  submitButton.textContent = t('apply.sendingButton');
 
   try {
     const result = await createApplication(data);
@@ -111,11 +111,11 @@ form.addEventListener('submit', async (event) => {
 
     formMessage.innerHTML = `
       <div class="success-box">
-        <h2>Thank you! 🐾</h2>
-        <p>Your application has been received.</p>
-        <p>Reference number: <strong>#${result.id}</strong></p>
-        <p>The shelter will contact you within a few days.</p>
-        <a href="pets.html" class="btn btn-primary">Browse more pets</a>
+        <h2>${t('apply.thankYou')}</h2>
+        <p>${t('apply.received')}</p>
+        <p>${t('apply.reference')} <strong>#${result.id}</strong></p>
+        <p>${t('apply.contactSoon')}</p>
+        <a href="pets.html" class="btn btn-primary">${t('apply.browseMore')}</a>
       </div>
     `;
 
@@ -125,22 +125,24 @@ form.addEventListener('submit', async (event) => {
     if (error.data && error.data.errors) {
       formMessage.innerHTML = `
         <div class="error-box">
-          <p>Please fix the following:</p>
+          <p>${t('apply.fixFollowing')}</p>
           <ul>${error.data.errors.map(e => `<li>${e}</li>`).join('')}</ul>
         </div>
       `;
     } else {
       formMessage.innerHTML = `
         <div class="error-box">
-          <p>Something went wrong. Please try again.</p>
+          <p>${t('apply.genericError')}</p>
         </div>
       `;
     }
 
     submitButton.disabled = false;
-    submitButton.textContent = 'Send application';
+    submitButton.textContent = t('apply.sendButton');
   }
 });
 
 
 loadPetSummary();
+
+window.addEventListener('pawfind:langchange', loadPetSummary);

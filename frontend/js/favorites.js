@@ -9,7 +9,7 @@ function createFavoriteCard(pet) {
         <img src="${pet.image}" alt="${pet.name}, a ${pet.age} year old ${pet.species}">
         <button class="fav-btn is-favorite"
                 data-pet-id="${pet.id}"
-                aria-label="Remove from favorites">♥</button>
+                aria-label="${t('pets.removeFromFavorites')}">♥</button>
       </div>
 
       <div class="pet-card-body">
@@ -19,12 +19,12 @@ function createFavoriteCard(pet) {
         </div>
 
         <p class="pet-meta">
-          ${pet.species} · ${pet.age} ${pet.age === 1 ? 'year' : 'years'} · ${pet.size}
+          ${tSpecies(pet.species)} · ${pet.age} ${tYearsWord(pet.age)} · ${tSize(pet.size)}
         </p>
 
-        <p class="pet-description">${pet.description}</p>
+        <p class="pet-description">${tDescription(pet)}</p>
 
-        <a href="pet.html?id=${pet.id}" class="btn btn-primary btn-sm">View details</a>
+        <a href="pet.html?id=${pet.id}" class="btn btn-primary btn-sm">${t('pets.viewDetails')}</a>
       </div>
     </article>
   `;
@@ -37,7 +37,7 @@ function showMessage(html) {
 
 
 async function loadFavorites() {
-  favCount.textContent = 'Loading…';
+  favCount.textContent = t('favorites.loading');
 
   try {
     const pets = await getFavorites();
@@ -46,29 +46,29 @@ async function loadFavorites() {
     if (pets === null) {
       favCount.textContent = '';
       showMessage(`
-        <p>Log in to see the pets you saved.</p>
-        <a href="login.html" class="btn btn-primary">Log in</a>
+        <p>${t('favorites.loginPrompt')}</p>
+        <a href="login.html" class="btn btn-primary">${t('auth.loginButton')}</a>
       `);
       return;
     }
 
     // Prijavljena, ali nema favorita
     if (pets.length === 0) {
-      favCount.textContent = '0 pets saved';
+      favCount.textContent = t('favorites.countSaved', { n: 0, word: tPetsWord(0) });
       showMessage(`
-        <p>You have not saved any pets yet.</p>
-        <a href="pets.html" class="btn btn-primary">Browse pets</a>
+        <p>${t('favorites.noneSaved')}</p>
+        <a href="pets.html" class="btn btn-primary">${t('addPet.browseButton')}</a>
       `);
       return;
     }
 
     favGrid.innerHTML = pets.map(createFavoriteCard).join('');
-    favCount.textContent = `${pets.length} ${pets.length === 1 ? 'pet' : 'pets'} saved`;
+    favCount.textContent = t('favorites.countSaved', { n: pets.length, word: tPetsWord(pets.length) });
 
   } catch (error) {
     console.error(error);
-    favCount.textContent = 'Something went wrong';
-    showMessage('<p>Could not load your favourites. Is the server running?</p>');
+    favCount.textContent = t('favorites.somethingWrong');
+    showMessage(`<p>${t('favorites.loadError')}</p>`);
   }
 }
 
@@ -96,3 +96,5 @@ favGrid.addEventListener('click', async (event) => {
 
 
 loadFavorites();
+
+window.addEventListener('pawfind:langchange', loadFavorites);

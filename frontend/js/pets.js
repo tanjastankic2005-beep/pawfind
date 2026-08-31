@@ -18,18 +18,34 @@ let isLoggedIn  = false;
 
 
 // ---- Šablon kartice ----
+function petImageList(pet) {
+  return (pet.images && pet.images.length > 0)
+    ? pet.images.map(img => img.image)
+    : [pet.image];
+}
+
 function createPetCard(pet) {
   const isFavorite = favoriteIds.includes(pet.id);
+  const images = petImageList(pet);
+
+  const carouselControls = images.length > 1 ? `
+    <button type="button" class="image-nav image-nav-prev" data-dir="-1" aria-label="Previous photo">‹</button>
+    <button type="button" class="image-nav image-nav-next" data-dir="1" aria-label="Next photo">›</button>
+    <div class="image-dots">
+      ${images.map((_, i) => `<span class="image-dot ${i === 0 ? 'is-active' : ''}"></span>`).join('')}
+    </div>
+  ` : '';
 
   return `
     <article class="pet-card">
-      <div class="pet-card-image">
-        <img src="${pet.image}" alt="${pet.name}, a ${pet.age} year old ${pet.species}">
+      <div class="pet-card-image" data-images='${JSON.stringify(images)}' data-index="0">
+        <img src="${images[0]}" alt="${pet.name}, a ${pet.age} year old ${pet.species}">
         <button class="fav-btn ${isFavorite ? 'is-favorite' : ''}"
                 data-pet-id="${pet.id}"
-                aria-label="${isFavorite ? 'Remove from favorites' : 'Add to favorites'}">
+                aria-label="${isFavorite ? t('pets.removeFromFavorites') : t('pets.addToFavorites')}">
           ${isFavorite ? '♥' : '♡'}
         </button>
+        ${carouselControls}
       </div>
 
       <div class="pet-card-body">
@@ -39,12 +55,12 @@ function createPetCard(pet) {
         </div>
 
         <p class="pet-meta">
-          ${pet.species} · ${pet.age} ${pet.age === 1 ? 'year' : 'years'} · ${pet.size}
+          ${tSpecies(pet.species)} · ${pet.age} ${tYearsWord(pet.age)} · ${tSize(pet.size)}
         </p>
 
-        <p class="pet-description">${pet.description}</p>
+        <p class="pet-description">${tDescription(pet)}</p>
 
-        <a href="pet.html?id=${pet.id}" class="btn btn-primary btn-sm">View details</a>
+        <a href="pet.html?id=${pet.id}" class="btn btn-primary btn-sm">${t('pets.viewDetails')}</a>
       </div>
     </article>
   `;
@@ -52,7 +68,7 @@ function createPetCard(pet) {
 
 function renderPets(list) {
   petsGrid.innerHTML = list.map(createPetCard).join('');
-  petsCount.textContent = `${list.length} ${list.length === 1 ? 'pet' : 'pets'} found`;
+  petsCount.textContent = t('pets.countFound', { n: list.length, word: tPetsWord(list.length) });
 }
 
 function showMessage(text) {
@@ -75,14 +91,14 @@ function getCurrentFilters() {
 }
 
 async function loadPets() {
-  petsCount.textContent = 'Loading…';
+  petsCount.textContent = t('pets.loading');
 
   try {
     const pets = await getPets(getCurrentFilters());
 
     if (pets.length === 0) {
-      showMessage('No pets match your search. Try changing the filters.');
-      petsCount.textContent = '0 pets found';
+      showMessage(t('pets.noMatch'));
+      petsCount.textContent = t('pets.countFound', { n: 0, word: tPetsWord(0) });
       return;
     }
 
@@ -90,10 +106,31 @@ async function loadPets() {
 
   } catch (error) {
     console.error(error);
-    showMessage('Could not load pets. Is the server running?');
-    petsCount.textContent = 'Something went wrong';
+    showMessage(t('pets.loadError'));
+    petsCount.textContent = t('pets.somethingWrong');
   }
 }
+
+
+// ---- Klik na strelice karusela slika ----
+petsGrid.addEventListener('click', (event) => {
+  const navButton = event.target.closest('.image-nav');
+  if (!navButton) return;
+
+  event.preventDefault();
+
+  const wrapper = navButton.closest('.pet-card-image');
+  const images  = JSON.parse(wrapper.dataset.images);
+  const dir     = Number(navButton.dataset.dir);
+  const index   = (Number(wrapper.dataset.index) + dir + images.length) % images.length;
+
+  wrapper.dataset.index = index;
+  wrapper.querySelector('img').src = images[index];
+
+  wrapper.querySelectorAll('.image-dot').forEach((dot, i) => {
+    dot.classList.toggle('is-active', i === index);
+  });
+});
 
 
 // ---- Klik na srce (event delegation) ----
@@ -184,3 +221,5 @@ async function init() {
 }
 
 init();
+
+window.addEventListener('pawfind:langchange', loadPets);

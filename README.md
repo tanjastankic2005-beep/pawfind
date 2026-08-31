@@ -33,33 +33,38 @@ REST API with modular routers, session-based authentication, and role-based
 authorization middleware.
 
 **Database** — MySQL 8
-Four related tables with foreign keys, cascading deletes, and a many-to-many
+Six related tables with foreign keys, cascading deletes, and a many-to-many
 junction table for favourites.
 
-**Libraries** — `express`, `mysql2`, `express-session`, `bcryptjs`, `dotenv`
+**Libraries** — `express`, `mysql2`, `express-session`, `bcryptjs`, `dotenv`, `multer`
 
 ---
 
 ## Features
 
 ### For visitors
-- Browse available pets
+- Browse available pets, with a photo carousel for pets with more than one picture
 - Search by name, filter by species, gender, age group, size, location and personality
 - Sort by name, age or date added
 - View full pet details
 - Apply to adopt, with or without an account
+- Send a message from the Contact us page
+- Switch the whole site between English and Serbian (Latin) — the choice is remembered per browser
 
 ### For registered users
 - Create an account with a hashed password
 - Save favourite pets — stored in the database, not in the browser
+- List a pet for adoption — goes live once an admin reviews and approves it
 - Track adoption applications and their status
 - Personal profile with statistics
 
 ### For administrators
 - Dashboard with live statistics
 - Full CRUD on pets: create, read, update, delete
+- Review pets submitted by users and publish them
 - View all applications, including guest applications
 - Change application status — approving one automatically marks the pet as adopted
+- Read and reply to Contact us messages
 
 ---
 
@@ -86,8 +91,16 @@ backend/database/schema.sql
 backend/database/seed.sql
 ```
 
-The first creates the database and its four tables.
+The first creates the database and its six tables.
 The second fills the `pets` table with sample data.
+
+Already have a database from before `pet_images`, `messages`,
+`pets.description_sr` or `messages.reply` existed? Run the matching file(s)
+from `backend/database/migrate-*.sql` instead — each adds just its own table
+or column (`migrate-pet-images.sql` also copies each pet's existing `image`
+into `pet_images`; `migrate-description-sr.sql` also backfills a Serbian
+description for the six pets from `seed.sql`) without touching the rest of
+your data.
 
 ### 3. Configure environment variables
 
@@ -131,9 +144,10 @@ Log out and back in — an **Admin** link appears in the navigation.
 
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
-| `GET` | `/api/pets` | public | List pets, with search, filters and sorting |
-| `GET` | `/api/pets/:id` | public | Single pet |
+| `GET` | `/api/pets` | public | List available pets, with search, filters and sorting |
+| `GET` | `/api/pets/:id` | public | Single pet, with its photos |
 | `POST` | `/api/pets` | admin | Create a pet |
+| `POST` | `/api/pets/submit` | user | Submit a pet for adoption — goes live as `pending` until an admin approves it |
 | `PUT` | `/api/pets/:id` | admin | Replace a pet |
 | `DELETE` | `/api/pets/:id` | admin | Delete a pet |
 | `POST` | `/api/auth/register` | public | Create an account |
@@ -148,8 +162,12 @@ Log out and back in — an **Admin** link appears in the navigation.
 | `GET` | `/api/applications/me` | user | My applications |
 | `PATCH` | `/api/applications/:id/status` | admin | Change application status |
 | `GET` | `/api/admin/stats` | admin | Dashboard statistics |
-| `GET` | `/api/admin/pets` | admin | All pets, including adopted |
+| `GET` | `/api/admin/pets` | admin | All pets, including pending and adopted |
 | `GET` | `/api/admin/applications` | admin | All applications |
+| `POST` | `/api/contact` | public | Send a message from the Contact us page |
+| `GET` | `/api/admin/messages` | admin | All contact messages, unanswered ones first |
+| `PATCH` | `/api/admin/messages/:id/reply` | admin | Save a reply and open it in the admin's email client |
+| `DELETE` | `/api/admin/messages/:id` | admin | Delete a contact message |
 
 **Query parameters on `/api/pets`:**
 `search`, `species`, `gender`, `age`, `size`, `location`, `personality`, `sort`
@@ -161,17 +179,19 @@ Log out and back in — an **Admin** link appears in the navigation.
 ## Database
 
 ```
-users                    pets
-  id (PK)                  id (PK)
-  name                     name, species, breed, age
-  email (UNIQUE)           gender, size, location
-  password (hashed)        description, image, personality
-  role                     vaccinated, neutered
-  created_at               good_with_kids / dogs / cats
+users                    pets                     pet_images
+  id (PK)                  id (PK)                  id (PK)
+  name                     name, species, breed,    pet_id (FK)
+  email (UNIQUE)           age, gender, size,       image
+  password (hashed)        location, description,   sort_order
+  role                     description_sr,
+  created_at               image (cover), personality,
+                           vaccinated, neutered,
+                           good_with_kids / dogs / cats
                            status, created_at
-      |                        |
-      |  1                   1 |
-      |                        |
+      |                        |    |                  |
+      |  1                   1 |    |  1              N |
+      |                        |    +--------------------+
       +---- applications ------+
       |      user_id (FK, nullable - guests allowed)
       |      pet_id  (FK)
@@ -180,11 +200,25 @@ users                    pets
       +---- favorites ---------+
              user_id (FK) + pet_id (FK)
              UNIQUE(user_id, pet_id)
+
+messages (standalone — no foreign keys)
+  id (PK), name, email, message, reply, replied_at, created_at
 ```
 
 `applications.user_id` is nullable so visitors can apply without an account.
 `favorites` is a junction table implementing a many-to-many relationship.
-Both use `ON DELETE CASCADE`.
+`pet_images` holds every uploaded photo for a pet, ordered by `sort_order`; `pets.image` always
+mirrors the first one and is kept as the cover photo shown in listings and cards.
+`pets.description_sr` is an optional Serbian translation of `description`, filled in from the
+admin form; visitors who switch the site to Serbian see it instead of the English description,
+falling back to `description` when it is empty.
+`pets.status` also accepts `pending`: pets submitted by regular users through `/api/pets/submit`
+are created with this status, stay out of the public `/api/pets` listing, and only appear once
+an admin edits them to `available` from the dashboard.
+`messages` stores submissions from the Contact us page for admins to read, reply to and delete.
+There is no email-sending service configured, so a reply is saved in `reply` / `replied_at` and
+also opened as a pre-filled `mailto:` link, which sends through the admin's own email account.
+All foreign-keyed tables above use `ON DELETE CASCADE`.
 
 ---
 
@@ -204,17 +238,20 @@ pawfind/
 │   │   ├── auth.js
 │   │   ├── applications.js
 │   │   ├── favorites.js
-│   │   └── admin.js
+│   │   ├── admin.js
+│   │   └── contact.js
 │   └── server.js            configuration and route mounting
 │
 ├── frontend/
 │   ├── css/style.css        design tokens and all styling
 │   ├── images/
+│   │   └── uploads/         photos uploaded through the app
 │   ├── js/
 │   │   ├── api.js           every call to the backend
 │   │   ├── main.js          navigation, toast messages
+│   │   ├── i18n.js          EN/SR dictionary, language switcher
 │   │   └── ...              one file per page
-│   └── *.html               nine pages
+│   └── *.html               eleven pages
 │
 ├── docs/                    screenshots
 ├── .env.example

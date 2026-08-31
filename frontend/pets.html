@@ -7,7 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🐾%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/style.css">
+
 </head>
 <body>
 
@@ -21,11 +23,11 @@
       </a>
 
       <nav class="main-nav">
-        <a href="index.html" class="nav-link">Home</a>
-        <a href="pets.html" class="nav-link">Browse Pets</a>
-        <a href="favorites.html" class="nav-link">Favorites</a>
-        <a href="login.html" class="nav-link">Log in</a>
-        <a href="register.html" class="nav-link nav-cta">Sign up</a>
+        <a href="index.html" class="nav-link" data-i18n="nav.home">Home</a>
+        <a href="pets.html" class="nav-link" data-i18n="nav.browsePets">Browse Pets</a>
+        <a href="favorites.html" class="nav-link" data-i18n="nav.favorites">Favorites</a>
+        <a href="login.html" class="nav-link" data-i18n="nav.login">Log in</a>
+        <a href="register.html" class="nav-link nav-cta" data-i18n="nav.signup">Sign up</a>
       </nav>
 
       <button class="nav-toggle" aria-label="Open menu">☰</button>
@@ -37,7 +39,7 @@
 
     <section class="page-head">
       <div class="container">
-        <h1 class="page-title">Meet our pets</h1>
+        <h1 class="page-title" data-i18n="pets.pageTitle">Meet our pets</h1>
         <p class="page-subtitle" id="petsCount">Loading…</p>
       </div>
     </section>
@@ -50,37 +52,38 @@
             id="searchInput"
             class="filter-input"
             placeholder="Search by name…"
+            data-i18n-placeholder="pets.searchPlaceholder"
             aria-label="Search pets by name">
 
           <select id="speciesFilter" class="filter-select" aria-label="Species">
-            <option value="">All species</option>
-            <option value="dog">Dogs</option>
-            <option value="cat">Cats</option>
+            <option value="" data-i18n="pets.allSpecies">All species</option>
+            <option value="dog" data-i18n="pets.dogs">Dogs</option>
+            <option value="cat" data-i18n="pets.cats">Cats</option>
           </select>
 
           <select id="genderFilter" class="filter-select" aria-label="Gender">
-            <option value="">Any gender</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
+            <option value="" data-i18n="pets.anyGender">Any gender</option>
+            <option value="male" data-i18n="pets.male">Male</option>
+            <option value="female" data-i18n="pets.female">Female</option>
           </select>
 
           <select id="ageFilter" class="filter-select" aria-label="Age">
-            <option value="">Any age</option>
-            <option value="baby">Baby</option>
-            <option value="young">Young</option>
-            <option value="adult">Adult</option>
-            <option value="senior">Senior</option>
+            <option value="" data-i18n="pets.anyAge">Any age</option>
+            <option value="baby" data-i18n="pets.baby">Baby</option>
+            <option value="young" data-i18n="pets.young">Young</option>
+            <option value="adult" data-i18n="pets.adult">Adult</option>
+            <option value="senior" data-i18n="pets.senior">Senior</option>
           </select>
 
           <select id="sizeFilter" class="filter-select" aria-label="Size">
-            <option value="">Any size</option>
-            <option value="small">Small</option>
-            <option value="medium">Medium</option>
-            <option value="large">Large</option>
+            <option value="" data-i18n="pets.anySize">Any size</option>
+            <option value="small" data-i18n="pets.small">Small</option>
+            <option value="medium" data-i18n="pets.medium">Medium</option>
+            <option value="large" data-i18n="pets.large">Large</option>
           </select>
 
           <select id="locationFilter" class="filter-select" aria-label="Location">
-            <option value="">Any location</option>
+            <option value="" data-i18n="pets.anyLocation">Any location</option>
             <option value="Banja Luka">Banja Luka</option>
             <option value="Sarajevo">Sarajevo</option>
             <option value="Tuzla">Tuzla</option>
@@ -88,28 +91,28 @@
           </select>
 
           <select id="personalityFilter" class="filter-select" aria-label="Personality">
-            <option value="">Any personality</option>
-            <option value="friendly">Friendly</option>
-            <option value="playful">Playful</option>
-            <option value="calm">Calm</option>
-            <option value="energetic">Energetic</option>
-            <option value="affectionate">Affectionate</option>
+            <option value="" data-i18n="pets.anyPersonality">Any personality</option>
+            <option value="friendly" data-i18n="pets.friendly">Friendly</option>
+            <option value="playful" data-i18n="pets.playful">Playful</option>
+            <option value="calm" data-i18n="pets.calm">Calm</option>
+            <option value="energetic" data-i18n="pets.energetic">Energetic</option>
+            <option value="affectionate" data-i18n="pets.affectionate">Affectionate</option>
           </select>
 
           <select id="sortSelect" class="filter-select" aria-label="Sort by">
-            <option value="newest">Newest first</option>
-            <option value="name-asc">Name A–Z</option>
-            <option value="name-desc">Name Z–A</option>
-            <option value="youngest">Youngest first</option>
-            <option value="oldest">Oldest first</option>
+            <option value="newest" data-i18n="pets.sortNewest">Newest first</option>
+            <option value="name-asc" data-i18n="pets.sortNameAsc">Name A–Z</option>
+            <option value="name-desc" data-i18n="pets.sortNameDesc">Name Z–A</option>
+            <option value="youngest" data-i18n="pets.sortYoungest">Youngest first</option>
+            <option value="oldest" data-i18n="pets.sortOldest">Oldest first</option>
           </select>
 
-          <button id="resetFilters" class="btn btn-ghost btn-sm">Reset</button>
+          <button id="resetFilters" class="btn btn-ghost btn-sm" data-i18n="pets.reset">Reset</button>
 
         </div>
       </div>
     </section>
-    
+
     <section class="pets-section">
       <div class="container">
         <!-- KARTICE PIŠE JAVASCRIPT — ovdje je namjerno prazno -->
@@ -124,23 +127,24 @@
 
       <div class="footer-brand">
         <span class="logo-icon">🐾</span> PawFind
-        <p class="footer-tagline">Find your new best friend.</p>
+        <p class="footer-tagline" data-i18n="footer.tagline">Find your new best friend.</p>
       </div>
 
       <nav class="footer-nav">
-        <a href="pets.html">Browse Pets</a>
-        <a href="favorites.html">Favorites</a>
-        <a href="login.html">Log in</a>
-        <a href="register.html">Sign up</a>
+        <a href="pets.html" data-i18n="nav.browsePets">Browse Pets</a>
+        <a href="favorites.html" data-i18n="nav.favorites">Favorites</a>
+        <a href="login.html" data-i18n="nav.login">Log in</a>
+        <a href="register.html" data-i18n="nav.signup">Sign up</a>
       </nav>
 
     </div>
 
     <div class="container footer-bottom">
-      <p>© 2026 PawFind. A student project by Tanja Stankic.</p>
+      <p data-i18n="footer.copyright">© 2026 PawFind. A student project by Tanja Stankic.</p>
     </div>
   </footer>
 
+  <script src="js/i18n.js"></script>
   <script src="js/main.js"></script>
    <script src="js/api.js"></script>
   <script src="js/pets.js"></script>

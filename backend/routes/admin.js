@@ -14,6 +14,7 @@ router.get('/stats', async (req, res) => {
     const [[totalPets]]     = await pool.query('SELECT COUNT(*) AS total FROM pets');
     const [[availablePets]] = await pool.query("SELECT COUNT(*) AS total FROM pets WHERE status = 'available'");
     const [[adoptedPets]]   = await pool.query("SELECT COUNT(*) AS total FROM pets WHERE status = 'adopted'");
+    const [[pendingPets]]   = await pool.query("SELECT COUNT(*) AS total FROM pets WHERE status = 'pending'");
     const [[pendingApps]]   = await pool.query("SELECT COUNT(*) AS total FROM applications WHERE status = 'Pending'");
     const [[approvedApps]]  = await pool.query("SELECT COUNT(*) AS total FROM applications WHERE status = 'Approved'");
 
@@ -21,6 +22,7 @@ router.get('/stats', async (req, res) => {
       totalPets:            totalPets.total,
       availablePets:        availablePets.total,
       adoptedPets:          adoptedPets.total,
+      pendingPets:          pendingPets.total,
       pendingApplications:  pendingApps.total,
       approvedApplications: approvedApps.total
     });
@@ -35,7 +37,9 @@ router.get('/stats', async (req, res) => {
 // ---- GET /api/admin/pets ----
 router.get('/pets', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM pets ORDER BY created_at DESC');
+    const [rows] = await pool.query(
+      "SELECT * FROM pets ORDER BY (status = 'pending') DESC, created_at DESC"
+    );
     res.json(rows);
   } catch (error) {
     console.error(error.message);
@@ -71,6 +75,60 @@ router.get('/applications', async (req, res) => {
 
     res.json(rows);
 
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// ---- GET /api/admin/messages ----
+router.get('/messages', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT * FROM messages ORDER BY (reply IS NULL) DESC, created_at DESC"
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// ---- PATCH /api/admin/messages/:id/reply ----
+router.patch('/messages/:id/reply', async (req, res) => {
+  try {
+    const reply = (req.body.reply || '').trim();
+    if (!reply) return res.status(400).json({ errors: ['Reply cannot be empty.'] });
+
+    const [result] = await pool.query(
+      'UPDATE messages SET reply = ?, replied_at = NOW() WHERE id = ?',
+      [reply, req.params.id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+
+    res.json({ message: 'Reply saved' });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// ---- DELETE /api/admin/messages/:id ----
+router.delete('/messages/:id', async (req, res) => {
+  try {
+    const [result] = await pool.query('DELETE FROM messages WHERE id = ?', [req.params.id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+
+    res.json({ message: 'Message deleted' });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ error: 'Database error' });

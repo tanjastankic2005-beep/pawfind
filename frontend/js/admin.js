@@ -5,6 +5,7 @@ const adminPanel       = document.querySelector('#adminPanel');
 const statsGrid        = document.querySelector('#statsGrid');
 const petsTableBody    = document.querySelector('#petsTableBody');
 const adminApplications = document.querySelector('#adminApplications');
+const adminMessages     = document.querySelector('#adminMessages');
 
 const petForm          = document.querySelector('#petForm');
 const petFormTitle     = document.querySelector('#petFormTitle');
@@ -13,6 +14,85 @@ const newPetButton     = document.querySelector('#newPetButton');
 const petCancelButton  = document.querySelector('#petCancelButton');
 
 let allPets = [];
+
+// ---- Slike u formi ----
+const petImagesInput   = document.querySelector('#petImages');
+const petImagePreview  = document.querySelector('#petImagePreview');
+const petImagesHint    = document.querySelector('#petImagesHint');
+
+let selectedFiles    = [];  // nove slike izabrane sa diska (File objekti)
+let existingImages   = [];  // slike koje ljubimac već ima (kod izmjene): [{id, image}]
+let removedImageIds  = [];  // id-jevi postojećih slika koje treba obrisati
+
+function renderImagePreview() {
+  const existingHtml = existingImages
+    .filter(img => !removedImageIds.includes(img.id))
+    .map(img => `
+      <div class="image-preview-item">
+        <img src="${img.image}" alt="">
+        <button type="button" class="image-preview-remove" data-existing-id="${img.id}" title="Remove photo">×</button>
+      </div>
+    `).join('');
+
+  const newHtml = selectedFiles
+    .map((file, index) => `
+      <div class="image-preview-item">
+        <img src="${URL.createObjectURL(file)}" alt="">
+        <button type="button" class="image-preview-remove" data-new-index="${index}" title="Remove photo">×</button>
+      </div>
+    `).join('');
+
+  petImagePreview.innerHTML = existingHtml + newHtml;
+
+  const totalCount = existingImages.filter(img => !removedImageIds.includes(img.id)).length + selectedFiles.length;
+  petImagesHint.textContent = totalCount > 0
+    ? `${totalCount} photo${totalCount === 1 ? '' : 's'} selected — click or drag to add more.`
+    : 'Click to choose photos, or drag them here. You can select several at once.';
+}
+
+function addFiles(fileList) {
+  const images = Array.from(fileList).filter(file => file.type.startsWith('image/'));
+  selectedFiles = selectedFiles.concat(images);
+  renderImagePreview();
+}
+
+petImagesInput.addEventListener('change', () => {
+  addFiles(petImagesInput.files);
+  petImagesInput.value = '';
+});
+
+const imageUploadBox = document.querySelector('.image-upload-box');
+
+['dragenter', 'dragover'].forEach(eventName => {
+  imageUploadBox.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    imageUploadBox.classList.add('is-dragover');
+  });
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+  imageUploadBox.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    imageUploadBox.classList.remove('is-dragover');
+  });
+});
+
+imageUploadBox.addEventListener('drop', (event) => {
+  if (event.dataTransfer.files.length > 0) addFiles(event.dataTransfer.files);
+});
+
+petImagePreview.addEventListener('click', (event) => {
+  const button = event.target.closest('.image-preview-remove');
+  if (!button) return;
+
+  if (button.dataset.existingId) {
+    removedImageIds.push(Number(button.dataset.existingId));
+  } else if (button.dataset.newIndex !== undefined) {
+    selectedFiles.splice(Number(button.dataset.newIndex), 1);
+  }
+
+  renderImagePreview();
+});
 
 
 // ---- Pomoćne ----
@@ -47,13 +127,20 @@ async function loadStats() {
     <div class="stat-card"><span class="stat-number">${s.totalPets}</span><span class="stat-label">Total pets</span></div>
     <div class="stat-card"><span class="stat-number">${s.availablePets}</span><span class="stat-label">Available</span></div>
     <div class="stat-card"><span class="stat-number">${s.adoptedPets}</span><span class="stat-label">Adopted</span></div>
-    <div class="stat-card"><span class="stat-number">${s.pendingApplications}</span><span class="stat-label">Pending</span></div>
+    <div class="stat-card"><span class="stat-number">${s.pendingPets}</span><span class="stat-label">Pets awaiting review</span></div>
+    <div class="stat-card"><span class="stat-number">${s.pendingApplications}</span><span class="stat-label">Pending applications</span></div>
     <div class="stat-card"><span class="stat-number">${s.approvedApplications}</span><span class="stat-label">Approved</span></div>
   `;
 }
 
 
 // ---- Tabela ljubimaca ----
+const PET_STATUS_CLASSES = {
+  pending:   'status-pending',
+  available: 'status-approved',
+  adopted:   'status-completed'
+};
+
 async function loadPetsTable() {
   allPets = await getAdminPets();
 
@@ -67,8 +154,8 @@ async function loadPetsTable() {
       <td>${pet.age}</td>
       <td>${pet.location}</td>
       <td>
-        <span class="status-badge ${pet.status === 'available' ? 'status-approved' : 'status-completed'}">
-          ${pet.status}
+        <span class="status-badge ${PET_STATUS_CLASSES[pet.status] || 'status-approved'}">
+          ${pet.status === 'pending' ? 'Pending review' : pet.status}
         </span>
       </td>
       <td class="cell-actions">
@@ -131,9 +218,129 @@ async function loadApplicationsList() {
   `).join('');
 }
 
+
+// ---- Lista poruka sa Contact us stranice ----
+let allMessages = [];
+
+function messageCardHtml(msg) {
+  const replyBlock = msg.reply ? `
+    <div class="message-reply">
+      <p class="message-reply-label">Your reply · ${formatDate(msg.replied_at)}</p>
+      <p class="message-reply-text">${msg.reply}</p>
+    </div>
+  ` : '';
+
+  return `
+    <article class="message-card" data-id="${msg.id}">
+      <div class="message-info">
+        <p class="message-meta">
+          <strong>${msg.name}</strong> · <a href="mailto:${msg.email}">${msg.email}</a>
+          <span class="message-date">${formatDate(msg.created_at)}</span>
+        </p>
+        <p class="message-text">${msg.message}</p>
+
+        ${replyBlock}
+
+        <form class="message-reply-form hidden" data-id="${msg.id}">
+          <textarea rows="3" placeholder="Write your reply…">${msg.reply || ''}</textarea>
+          <div class="message-reply-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Send reply</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-action="cancel-reply">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="message-side">
+        <button class="link-btn" data-action="toggle-reply" data-id="${msg.id}">${msg.reply ? 'Edit reply' : 'Reply'}</button>
+        <button class="link-btn link-danger" data-action="delete-message" data-id="${msg.id}">Delete</button>
+      </div>
+    </article>
+  `;
+}
+
+async function loadMessagesList() {
+  allMessages = await getAdminMessages();
+
+  if (allMessages.length === 0) {
+    adminMessages.innerHTML = `<p class="state-message">No messages yet.</p>`;
+    return;
+  }
+
+  adminMessages.innerHTML = allMessages.map(messageCardHtml).join('');
+}
+
+adminMessages.addEventListener('click', async (event) => {
+  const deleteButton = event.target.closest('[data-action="delete-message"]');
+  if (deleteButton) {
+    const id = Number(deleteButton.dataset.id);
+    const ok = confirm('Delete this message? This cannot be undone.');
+    if (!ok) return;
+
+    try {
+      await deleteAdminMessage(id);
+      deleteButton.closest('.message-card').remove();
+    } catch (error) {
+      console.error(error);
+      showToast('Could not delete this message.');
+    }
+    return;
+  }
+
+  const toggleButton = event.target.closest('[data-action="toggle-reply"]');
+  if (toggleButton) {
+    const form = toggleButton.closest('.message-card').querySelector('.message-reply-form');
+    form.classList.toggle('hidden');
+    if (!form.classList.contains('hidden')) form.querySelector('textarea').focus();
+    return;
+  }
+
+  const cancelButton = event.target.closest('[data-action="cancel-reply"]');
+  if (cancelButton) {
+    cancelButton.closest('.message-reply-form').classList.add('hidden');
+  }
+});
+
+adminMessages.addEventListener('submit', async (event) => {
+  const form = event.target.closest('.message-reply-form');
+  if (!form) return;
+
+  event.preventDefault();
+
+  const id      = Number(form.dataset.id);
+  const msg     = allMessages.find(m => m.id === id);
+  const textarea = form.querySelector('textarea');
+  const reply   = textarea.value.trim();
+
+  if (!reply) return;
+
+  const submitButton = form.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+
+  try {
+    await replyToAdminMessage(id, reply);
+
+    const mailtoUrl =
+      `mailto:${encodeURIComponent(msg.email)}` +
+      `?subject=${encodeURIComponent('Re: your message to PawFind')}` +
+      `&body=${encodeURIComponent(reply + '\n\n---\nYour message:\n' + msg.message)}`;
+    window.location.href = mailtoUrl;
+
+    await loadMessagesList();
+    showToast('Reply saved.', 'success');
+
+  } catch (error) {
+    console.error(error);
+    showToast('Could not save the reply.');
+    submitButton.disabled = false;
+  }
+});
+
 // ---- Forma: otvori ----
-function openPetForm(pet) {
+async function openPetForm(pet) {
   petFormMessage.innerHTML = '';
+  selectedFiles   = [];
+  removedImageIds = [];
+  existingImages  = [];
 
   if (pet) {
     petFormTitle.textContent = `Edit ${pet.name}`;
@@ -146,20 +353,24 @@ function openPetForm(pet) {
     document.querySelector('#petSize').value        = pet.size;
     document.querySelector('#petLocation').value    = pet.location;
     document.querySelector('#petPersonality').value = pet.personality || '';
-    document.querySelector('#petImage').value       = pet.image || '';
     document.querySelector('#petStatus').value      = pet.status;
     document.querySelector('#petDescription').value = pet.description || '';
+    document.querySelector('#petDescriptionSr').value = pet.description_sr || '';
     document.querySelector('#petVaccinated').checked = pet.vaccinated === 1;
     document.querySelector('#petNeutered').checked   = pet.neutered === 1;
     document.querySelector('#petKids').checked       = pet.good_with_kids === 1;
     document.querySelector('#petDogs').checked       = pet.good_with_dogs === 1;
     document.querySelector('#petCats').checked       = pet.good_with_cats === 1;
+
+    const full = await getPetById(pet.id);
+    existingImages = (full && full.images) || [];
   } else {
     petFormTitle.textContent = 'Add a new pet';
     petForm.reset();
     document.querySelector('#petId').value = '';
   }
 
+  renderImagePreview();
   petForm.classList.remove('hidden');
   petForm.scrollIntoView({ behavior: 'smooth' });
 }
@@ -168,6 +379,10 @@ function closePetForm() {
   petForm.classList.add('hidden');
   petForm.reset();
   petFormMessage.innerHTML = '';
+  selectedFiles   = [];
+  removedImageIds = [];
+  existingImages  = [];
+  renderImagePreview();
 }
 
 newPetButton.addEventListener('click', () => openPetForm(null));
@@ -181,24 +396,26 @@ petForm.addEventListener('submit', async (event) => {
 
   const id = document.querySelector('#petId').value;
 
-  const data = {
-    name:           document.querySelector('#petName').value,
-    breed:          document.querySelector('#petBreed').value,
-    species:        document.querySelector('#petSpecies').value,
-    age:            document.querySelector('#petAge').value,
-    gender:         document.querySelector('#petGender').value,
-    size:           document.querySelector('#petSize').value,
-    location:       document.querySelector('#petLocation').value,
-    personality:    document.querySelector('#petPersonality').value,
-    image:          document.querySelector('#petImage').value,
-    status:         document.querySelector('#petStatus').value,
-    description:    document.querySelector('#petDescription').value,
-    vaccinated:     document.querySelector('#petVaccinated').checked,
-    neutered:       document.querySelector('#petNeutered').checked,
-    good_with_kids: document.querySelector('#petKids').checked,
-    good_with_dogs: document.querySelector('#petDogs').checked,
-    good_with_cats: document.querySelector('#petCats').checked
-  };
+  const data = new FormData();
+  data.append('name',           document.querySelector('#petName').value);
+  data.append('breed',          document.querySelector('#petBreed').value);
+  data.append('species',        document.querySelector('#petSpecies').value);
+  data.append('age',            document.querySelector('#petAge').value);
+  data.append('gender',         document.querySelector('#petGender').value);
+  data.append('size',           document.querySelector('#petSize').value);
+  data.append('location',       document.querySelector('#petLocation').value);
+  data.append('personality',    document.querySelector('#petPersonality').value);
+  data.append('status',         document.querySelector('#petStatus').value);
+  data.append('description',    document.querySelector('#petDescription').value);
+  data.append('description_sr', document.querySelector('#petDescriptionSr').value);
+  data.append('vaccinated',     document.querySelector('#petVaccinated').checked);
+  data.append('neutered',       document.querySelector('#petNeutered').checked);
+  data.append('good_with_kids', document.querySelector('#petKids').checked);
+  data.append('good_with_dogs', document.querySelector('#petDogs').checked);
+  data.append('good_with_cats', document.querySelector('#petCats').checked);
+
+  selectedFiles.forEach(file => data.append('images', file));
+  if (id) data.append('deleteImageIds', JSON.stringify(removedImageIds));
 
   try {
     if (id) {
@@ -291,6 +508,7 @@ async function init() {
     await loadStats();
     await loadPetsTable();
     await loadApplicationsList();
+    await loadMessagesList();
 
   } catch (error) {
     console.error(error);

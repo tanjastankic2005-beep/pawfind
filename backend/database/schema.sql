@@ -20,6 +20,7 @@ CREATE TABLE pets (
   size           VARCHAR(20)  NOT NULL,
   location       VARCHAR(100) NOT NULL,
   description    TEXT,
+  description_sr TEXT,
   image          VARCHAR(255),
   personality    VARCHAR(50),
   vaccinated     BOOLEAN      DEFAULT FALSE,
@@ -29,6 +30,16 @@ CREATE TABLE pets (
   good_with_cats BOOLEAN      DEFAULT FALSE,
   status         VARCHAR(20)  NOT NULL DEFAULT 'available',
   created_at     TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE pet_images (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  pet_id     INT NOT NULL,
+  image      VARCHAR(255) NOT NULL,
+  sort_order INT          NOT NULL DEFAULT 0,
+  created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (pet_id) REFERENCES pets(id) ON DELETE CASCADE
 );
 
 CREATE TABLE applications (
@@ -51,6 +62,16 @@ CREATE TABLE applications (
 
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (pet_id)  REFERENCES pets(id)  ON DELETE CASCADE
+);
+
+CREATE TABLE messages (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  name       VARCHAR(100) NOT NULL,
+  email      VARCHAR(150) NOT NULL,
+  message    TEXT         NOT NULL,
+  reply      TEXT,
+  replied_at TIMESTAMP    NULL,
+  created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE favorites (

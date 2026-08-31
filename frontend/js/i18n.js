@@ -22,7 +22,7 @@ const T = {
     'footer.tagline': 'Find your new best friend.',
     'footer.copyright': '© 2026 PawFind. A student project by Tanja Stankic.',
 
-    'home.eyebrow': "Adopt, don't shop",
+    'home.eyebrow': 'Their story begins with you.',
     'home.title': 'Find your new best friend.',
     'home.text': 'Every pet on PawFind is waiting for someone like you. Browse hundreds of rescues, meet the one, and give them a home.',
     'home.findPet': 'Find a pet',
@@ -92,6 +92,7 @@ const T = {
     'pets.somethingWrong': 'Something went wrong',
     'pets.removeFromFavorites': 'Remove from favorites',
     'pets.addToFavorites': 'Add to favorites',
+    'pets.lookingForHome': 'Looking for their forever home ❤️',
 
     'petDetails.backLink': '← Back to all pets',
     'petDetails.loading': 'Loading…',
@@ -125,6 +126,7 @@ const T = {
     'adopted.pageTitle': 'Pets who found a new home',
     'adopted.pageSubtitle': 'Every pet here already has a family. Thank you to everyone who opened their door.',
     'adopted.loading': 'Loading…',
+    'adopted.badge': 'Adopted 🎉',
     'adopted.countLabel': '{n} {word} found a new home',
     'adopted.noneYet': 'No pets have been adopted yet. Check back soon!',
     'adopted.loadError': 'Could not load adopted pets. Is the server running?',
@@ -292,7 +294,7 @@ const T = {
     'footer.tagline': 'Pronađite svog novog najboljeg prijatelja.',
     'footer.copyright': '© 2026 PawFind. Studentski projekat, autor: Tanja Stankić.',
 
-    'home.eyebrow': 'Usvoji, ne kupuj',
+    'home.eyebrow': 'Njihova priča počinje s tobom.',
     'home.title': 'Pronađite svog novog najboljeg prijatelja.',
     'home.text': 'Svaki ljubimac na PawFind-u čeka baš vas. Pregledajte stotine ljubimaca za udomljavanje, upoznajte onog pravog i pružite mu dom.',
     'home.findPet': 'Pronađi ljubimca',
@@ -362,6 +364,7 @@ const T = {
     'pets.somethingWrong': 'Nešto nije u redu',
     'pets.removeFromFavorites': 'Ukloni iz favorita',
     'pets.addToFavorites': 'Dodaj u favorite',
+    'pets.lookingForHome': 'Traži svoj novi dom ❤️',
 
     'petDetails.backLink': '← Nazad na sve ljubimce',
     'petDetails.loading': 'Učitavanje…',
@@ -395,7 +398,8 @@ const T = {
     'adopted.pageTitle': 'Ljubimci koji su pronašli novi dom',
     'adopted.pageSubtitle': 'Svaki od ovih ljubimaca sada ima porodicu. Hvala svima koji su otvorili vrata.',
     'adopted.loading': 'Učitavanje…',
-    'adopted.countLabel': '{n} {word} udomljeno',
+    'adopted.badge': 'Udomljen 🎉',
+    'adopted.countLabel': '{n} {word} {participle}',
     'adopted.noneYet': 'Još nijedan ljubimac nije udomljen. Navratite uskoro!',
     'adopted.loadError': 'Ne mogu se učitati udomljeni ljubimci. Da li server radi?',
     'adopted.dateOnly': 'Udomljen/a {date}',
@@ -597,6 +601,11 @@ function tPetsWord(n) {
   return getLang() === 'sr'
     ? serbianPlural(n, 'ljubimac', 'ljubimca', 'ljubimaca')
     : (n === 1 ? 'pet' : 'pets');
+}
+
+// Slaganje participa "udomljen" sa brojem (1 udomljen, 2-4 udomljena, 5+ udomljeno)
+function tAdoptedParticiple(n) {
+  return serbianPlural(n, 'udomljen', 'udomljena', 'udomljeno');
 }
 
 function tPhotosWord(n) {

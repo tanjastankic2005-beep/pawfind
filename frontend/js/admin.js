@@ -6,6 +6,8 @@ const statsGrid        = document.querySelector('#statsGrid');
 const petsTableBody    = document.querySelector('#petsTableBody');
 const adminApplications = document.querySelector('#adminApplications');
 const adminMessages     = document.querySelector('#adminMessages');
+const heroImagePicker   = document.querySelector('#heroImagePicker');
+const currentHeroPreview = document.querySelector('#currentHeroPreview');
 
 const petForm          = document.querySelector('#petForm');
 const petFormTitle     = document.querySelector('#petFormTitle');
@@ -335,6 +337,101 @@ adminMessages.addEventListener('submit', async (event) => {
   }
 });
 
+
+// ---- Slika na početnoj stranici ----
+async function loadHeroImagePicker() {
+  try {
+    const [settings, images] = await Promise.all([
+      getSettings(),
+      getAdminImages()
+    ]);
+
+    const currentImage = settings.hero_image || 'images/hero.jpg';
+    currentHeroPreview.src = currentImage;
+
+    heroImagePicker.innerHTML = images.map(image => `
+      <button type="button"
+              class="image-picker-item ${image === currentImage ? 'is-selected' : ''}"
+              data-image="${image}">
+        <img src="${image}" alt="">
+      </button>
+    `).join('');
+
+  } catch (error) {
+    console.error(error);
+    heroImagePicker.innerHTML = `<p class="state-message">Could not load saved photos.</p>`;
+  }
+}
+
+heroImagePicker.addEventListener('click', async (event) => {
+  const button = event.target.closest('.image-picker-item');
+  if (!button) return;
+
+  const image = button.dataset.image;
+
+  try {
+    await updateHeroImage(image);
+    currentHeroPreview.src = image;
+    heroImagePicker.querySelectorAll('.image-picker-item').forEach(el => {
+      el.classList.toggle('is-selected', el.dataset.image === image);
+    });
+    showToast('Home page photo updated.', 'success');
+  } catch (error) {
+    console.error(error);
+    showToast('Could not update the home page photo.');
+  }
+});
+
+
+// ---- Ili otpremi sasvim novu sliku za početnu ----
+const heroUploadInput = document.querySelector('#heroUploadInput');
+const heroUploadHint  = document.querySelector('#heroUploadHint');
+const heroUploadBox   = heroUploadInput.closest('.image-upload-box');
+
+async function handleHeroFile(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+
+  heroUploadHint.textContent = 'Uploading…';
+
+  try {
+    const result = await uploadHeroImage(file);
+    currentHeroPreview.src = result.hero_image;
+    heroImagePicker.querySelectorAll('.image-picker-item').forEach(el => {
+      el.classList.remove('is-selected');
+    });
+    showToast('Home page photo updated.', 'success');
+  } catch (error) {
+    console.error(error);
+    showToast('Could not upload the home page photo.');
+  } finally {
+    heroUploadHint.textContent = 'Click to choose a photo, or drag it here.';
+    heroUploadInput.value = '';
+  }
+}
+
+heroUploadInput.addEventListener('change', () => {
+  handleHeroFile(heroUploadInput.files[0]);
+});
+
+['dragenter', 'dragover'].forEach(eventName => {
+  heroUploadBox.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    heroUploadBox.classList.add('is-dragover');
+  });
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+  heroUploadBox.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    heroUploadBox.classList.remove('is-dragover');
+  });
+});
+
+heroUploadBox.addEventListener('drop', (event) => {
+  handleHeroFile(event.dataTransfer.files[0]);
+});
+
+
 // ---- Prikaži "Adopted by" samo kad je status "Adopted" ----
 const petStatusSelect = document.querySelector('#petStatus');
 const adoptedByGroup  = document.querySelector('#adoptedByGroup');
@@ -523,6 +620,7 @@ async function init() {
     await loadPetsTable();
     await loadApplicationsList();
     await loadMessagesList();
+    await loadHeroImagePicker();
 
   } catch (error) {
     console.error(error);

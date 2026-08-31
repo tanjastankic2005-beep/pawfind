@@ -36,10 +36,15 @@ function createPetCard(pet) {
     </div>
   ` : '';
 
+  const statusBadge = pet.status === 'adopted'
+    ? `<span class="pet-status-badge is-adopted">${t('adopted.badge')}</span>`
+    : `<span class="pet-status-badge is-available">${t('pets.lookingForHome')}</span>`;
+
   return `
-    <article class="pet-card">
+    <article class="pet-card ${pet.status === 'adopted' ? 'pet-card-adopted' : ''}">
       <div class="pet-card-image" data-images='${JSON.stringify(images)}' data-index="0">
         <img src="${images[0]}" alt="${pet.name}, a ${pet.age} year old ${pet.species}">
+        ${statusBadge}
         <button class="fav-btn ${isFavorite ? 'is-favorite' : ''}"
                 data-pet-id="${pet.id}"
                 aria-label="${isFavorite ? t('pets.removeFromFavorites') : t('pets.addToFavorites')}">

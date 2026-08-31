@@ -83,7 +83,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 72px;
+  flex-wrap: wrap;
+  min-height: 72px;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 .logo {
@@ -102,13 +105,16 @@ body {
 .main-nav {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
+  gap: 20px;
+  flex-wrap: wrap;
+  row-gap: 6px;
 }
 
 .nav-link {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 500;
   color: var(--navy-soft);
+  white-space: nowrap;
   transition: color 0.2s ease;
 }
 
@@ -631,19 +637,29 @@ body {
 }
 
 /* ---- Kartica udomljenog ljubimca ---- */
-.adopted-badge {
+/* ---- Bedž statusa na kartici (Browse Pets / Favorites / Adopted pets) ---- */
+.pet-status-badge {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 38px;
-  height: 38px;
-  display: flex;
+  bottom: 12px;
+  left: 12px;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
   border-radius: var(--radius-full);
-  background-color: rgba(255, 255, 255, 0.9);
-  font-size: 1.2rem;
+  background-color: rgba(255, 255, 255, 0.92);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  white-space: nowrap;
   box-shadow: var(--shadow-sm);
+  z-index: 1;
+}
+
+.pet-status-badge.is-adopted {
+  color: #e5484d;
+}
+
+.pet-status-badge.is-available {
+  color: var(--primary-dark);
 }
 
 .pet-card-adopted .pet-card-image img {
@@ -1084,6 +1100,7 @@ body {
 .form-group input[type="email"],
 .form-group input[type="tel"],
 .form-group input[type="number"],
+.form-group input[type="password"],
 .form-group select,
 .form-group textarea {
   width: 100%;
@@ -1782,6 +1799,66 @@ fieldset.form-group .checkbox:has(input:checked) {
 
 .panel-head .section-subtitle {
   margin: 0;
+}
+
+.panel-hint {
+  color: var(--navy-soft);
+  margin-bottom: var(--space-md);
+}
+
+/* ---- Slika na početnoj (admin) ---- */
+.current-hero {
+  margin-bottom: var(--space-md);
+}
+
+.current-hero-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--navy-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.current-hero img {
+  width: 100%;
+  max-width: 420px;
+  height: 220px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.image-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.image-picker-item {
+  padding: 0;
+  border: 3px solid transparent;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  background: none;
+  aspect-ratio: 1;
+}
+
+.image-picker-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.image-picker-item:hover {
+  border-color: var(--blue-border);
+}
+
+.image-picker-item.is-selected {
+  border-color: var(--primary);
 }
 
 /* ---- Forma u adminu ---- */

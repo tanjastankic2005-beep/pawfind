@@ -58,6 +58,7 @@
           <button class="tab is-active" data-tab="pets">Pets</button>
           <button class="tab" data-tab="applications">Applications</button>
           <button class="tab" data-tab="messages">Messages</button>
+          <button class="tab" data-tab="home">Home page</button>
         </div>
       </section>
 
@@ -218,6 +219,25 @@
       <section class="container tab-panel hidden" id="panel-messages">
         <h2 class="section-subtitle">Contact messages</h2>
         <div class="messages-list" id="adminMessages"></div>
+      </section>
+
+      <!-- ============ POČETNA STRANICA ============ -->
+      <section class="container tab-panel hidden" id="panel-home">
+        <h2 class="section-subtitle">Home page photo</h2>
+        <p class="panel-hint">Pick the photo shown in the hero section on the home page, from every photo ever uploaded for a pet.</p>
+
+        <div class="current-hero">
+          <span class="current-hero-label">Current photo</span>
+          <img id="currentHeroPreview" src="" alt="Current home page photo">
+        </div>
+
+        <div class="image-picker-grid" id="heroImagePicker"></div>
+
+        <h3 class="form-title">Or upload a new photo</h3>
+        <div class="image-upload-box">
+          <input type="file" id="heroUploadInput" accept="image/*">
+          <p class="image-upload-hint" id="heroUploadHint">Click to choose a photo, or drag it here.</p>
+        </div>
       </section>
 
     </div>

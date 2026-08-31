@@ -1,33 +1,11 @@
 const express = require('express');
-const fs      = require('fs');
-const path    = require('path');
 const multer  = require('multer');
 const pool = require('../database/db');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
+const { upload, imagePathOf, deleteImageFiles } = require('../middleware/upload');
 
 const router = express.Router();
 
-
-// ---- Upload slika ----
-const uploadsDir = path.join(__dirname, '..', '..', 'frontend', 'images', 'uploads');
-fs.mkdirSync(uploadsDir, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsDir),
-  filename: (req, file, cb) => {
-    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, `${unique}${path.extname(file.originalname).toLowerCase()}`);
-  }
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024, files: 8 },
-  fileFilter: (req, file, cb) => {
-    const allowed = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
-    cb(null, allowed.includes(path.extname(file.originalname).toLowerCase()));
-  }
-});
 
 function handleUpload(req, res, next) {
   upload.array('images', 8)(req, res, (error) => {
@@ -44,25 +22,13 @@ function handleUpload(req, res, next) {
   });
 }
 
-function imagePathOf(file) {
-  return `images/uploads/${file.filename}`;
-}
-
-function deleteImageFiles(imagePaths) {
-  for (const imagePath of imagePaths) {
-    if (!imagePath || !imagePath.startsWith('images/uploads/')) continue;
-    fs.unlink(path.join(__dirname, '..', '..', 'frontend', imagePath), () => {});
-  }
-}
-
-
 // ---- GET /api/pets ----
 router.get('/', async (req, res) => {
   try {
     const { search, species, gender, size, location, personality, age, sort } = req.query;
 
-    let sql = 'SELECT * FROM pets WHERE status = ?';
-    const values = ['available'];
+    let sql = "SELECT * FROM pets WHERE status IN ('available', 'adopted')";
+    const values = [];
 
     if (search)      { sql += ' AND name LIKE ?';    values.push(`%${search}%`); }
     if (species)     { sql += ' AND species = ?';     values.push(species); }
@@ -84,7 +50,8 @@ router.get('/', async (req, res) => {
       'newest':    'created_at DESC'
     };
 
-    sql += ` ORDER BY ${sortOptions[sort] || 'created_at DESC'}`;
+    // Udomljeni ljubimci se prikazuju, ali potisnuti na kraj liste bez obzira na sortiranje
+    sql += ` ORDER BY (status = 'adopted') ASC, ${sortOptions[sort] || 'created_at DESC'}`;
 
     const [rows] = await pool.query(sql, values);
 
@@ -308,8 +275,9 @@ router.put('/:id', requireAdmin, handleUpload, async (req, res) => {
     let adoptedBy = null;
 
     if (newStatus === 'adopted') {
-      // Ako je već bio udomljen, zadrži originalni datum; inače je ovo trenutak udomljavanja.
-      adoptedAt = existingPet.status === 'adopted' ? existingPet.adopted_at : new Date();
+      // Zadrži postojeći datum ako već postoji; inače (nova udomljavanja ili stari
+      // zapisi bez datuma, npr. iz vremena prije ovog polja) postavi ga na sada.
+      adoptedAt = existingPet.adopted_at || new Date();
       adoptedBy = req.body.adopted_by || null;
     }
 

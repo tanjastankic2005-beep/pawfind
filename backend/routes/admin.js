@@ -1,11 +1,26 @@
 const express = require('express');
+const multer  = require('multer');
 const pool = require('../database/db');
 const { requireAdmin } = require('../middleware/auth');
+const { upload, imagePathOf } = require('../middleware/upload');
 
 const router = express.Router();
 
 // Cijeli admin dio traži admin prava
 router.use(requireAdmin);
+
+function handleHeroUpload(req, res, next) {
+  upload.single('image')(req, res, (error) => {
+    if (error instanceof multer.MulterError) {
+      const message = error.code === 'LIMIT_FILE_SIZE'
+        ? 'Photo must be 5MB or smaller.'
+        : error.message;
+      return res.status(400).json({ errors: [message] });
+    }
+    if (error) return next(error);
+    next();
+  });
+}
 
 
 // ---- GET /api/admin/stats ----
@@ -114,6 +129,64 @@ router.patch('/messages/:id/reply', async (req, res) => {
     res.json({ message: 'Reply saved' });
   } catch (error) {
     console.error(error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// ---- GET /api/admin/images ----
+// Sve slike koje su ikad sačuvane uz nekog ljubimca — odatle admin bira sliku za početnu stranicu.
+router.get('/images', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT image, MAX(id) AS latest_id FROM pet_images
+       GROUP BY image ORDER BY latest_id DESC LIMIT 200`
+    );
+
+    res.json(rows.map(row => row.image));
+
+  } catch (error) {
+    console.error('Greška pri čitanju slika:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+async function setHeroImage(image) {
+  await pool.query(
+    `INSERT INTO settings (setting_key, setting_value) VALUES ('hero_image', ?)
+     ON DUPLICATE KEY UPDATE setting_value = ?`,
+    [image, image]
+  );
+}
+
+// ---- PUT /api/admin/settings/hero-image (izbor iz postojećih slika) ----
+router.put('/settings/hero-image', async (req, res) => {
+  try {
+    const image = (req.body.image || '').trim();
+    if (!image) return res.status(400).json({ errors: ['No image selected.'] });
+
+    await setHeroImage(image);
+    res.json({ message: 'Home page image updated', hero_image: image });
+
+  } catch (error) {
+    console.error('Greška pri promjeni slike na početnoj:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// ---- POST /api/admin/settings/hero-image/upload (potpuno nova slika) ----
+router.post('/settings/hero-image/upload', handleHeroUpload, async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ errors: ['No photo uploaded.'] });
+
+    const image = imagePathOf(req.file);
+    await setHeroImage(image);
+    res.json({ message: 'Home page image updated', hero_image: image });
+
+  } catch (error) {
+    console.error('Greška pri otpremanju slike za početnu:', error.message);
     res.status(500).json({ error: 'Database error' });
   }
 });

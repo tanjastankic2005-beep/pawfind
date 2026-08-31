@@ -87,3 +87,10 @@ CREATE TABLE favorites (
 
   UNIQUE (user_id, pet_id)
 );
+
+CREATE TABLE settings (
+  setting_key   VARCHAR(50)  PRIMARY KEY,
+  setting_value VARCHAR(255) NOT NULL
+);
+
+INSERT INTO settings (setting_key, setting_value) VALUES ('hero_image', 'images/hero.jpg');

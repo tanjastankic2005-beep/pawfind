@@ -214,6 +214,31 @@ async function replyToAdminMessage(id, reply) {
 
 
 // =========================================
+//  PODEŠAVANJA SAJTA
+// =========================================
+async function getSettings() {
+  return request('GET', '/api/settings');
+}
+
+
+async function getAdminImages() {
+  return request('GET', '/api/admin/images');
+}
+
+
+async function updateHeroImage(image) {
+  return request('PUT', '/api/admin/settings/hero-image', { image });
+}
+
+
+async function uploadHeroImage(file) {
+  const data = new FormData();
+  data.append('image', file);
+  return request('POST', '/api/admin/settings/hero-image/upload', data);
+}
+
+
+// =========================================
 //  DODAVANJE LJUBIMCA (prijavljeni korisnici)
 // =========================================
 async function submitPet(data) {

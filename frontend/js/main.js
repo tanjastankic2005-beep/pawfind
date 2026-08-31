@@ -9,6 +9,17 @@ if (navToggle && mainNav) {
 }
 
 
+// ---- Početna: slika koju je admin izabrao za hero sekciju ----
+const heroImage = document.querySelector('#heroImage');
+if (heroImage) {
+  getSettings()
+    .then(settings => {
+      if (settings && settings.hero_image) heroImage.src = settings.hero_image;
+    })
+    .catch(error => console.error(error));
+}
+
+
 // ---- "Add a pet" i "Contact us" su dostupni i gostima i prijavljenim korisnicima ----
 function addSharedNavLinks() {
   if (!mainNav || mainNav.querySelector('a[href="contact.html"]')) return;

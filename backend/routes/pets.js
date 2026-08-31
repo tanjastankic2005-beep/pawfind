@@ -113,6 +113,39 @@ router.get('/', async (req, res) => {
 });
 
 
+// ---- GET /api/pets/adopted ----
+// Mora biti prije GET /:id, inače bi Express "adopted" tretirao kao id.
+router.get('/adopted', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT * FROM pets WHERE status = 'adopted' ORDER BY adopted_at DESC"
+    );
+
+    if (rows.length > 0) {
+      const [images] = await pool.query(
+        'SELECT pet_id, id, image FROM pet_images WHERE pet_id IN (?) ORDER BY sort_order ASC, id ASC',
+        [rows.map(pet => pet.id)]
+      );
+
+      const imagesByPet = {};
+      for (const img of images) {
+        (imagesByPet[img.pet_id] ??= []).push({ id: img.id, image: img.image });
+      }
+
+      for (const pet of rows) {
+        pet.images = imagesByPet[pet.id] || [];
+      }
+    }
+
+    res.json(rows);
+
+  } catch (error) {
+    console.error('Greška pri čitanju udomljenih ljubimaca:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
 // ---- GET /api/pets/:id ----
 router.get('/:id', async (req, res) => {
   try {
@@ -170,12 +203,15 @@ async function insertPet(body, files, status) {
   const uploadedImages = (files || []).map(imagePathOf);
   const coverImage = uploadedImages[0];
 
+  const adoptedAt = status === 'adopted' ? new Date() : null;
+  const adoptedBy = status === 'adopted' ? (body.adopted_by || null) : null;
+
   const [result] = await pool.query(
     `INSERT INTO pets
        (name, species, breed, age, gender, size, location, description, description_sr, image, personality,
-        vaccinated, neutered, good_with_kids, good_with_dogs, good_with_cats, status)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    petValues(body, coverImage, status)
+        vaccinated, neutered, good_with_kids, good_with_dogs, good_with_cats, status, adopted_at, adopted_by)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [...petValues(body, coverImage, status), adoptedAt, adoptedBy]
   );
 
   if (uploadedImages.length > 0) {
@@ -230,6 +266,9 @@ router.put('/:id', requireAdmin, handleUpload, async (req, res) => {
 
     const petId = req.params.id;
 
+    const [[existingPet]] = await pool.query('SELECT status, adopted_at FROM pets WHERE id = ?', [petId]);
+    if (!existingPet) return res.status(404).json({ error: 'Pet not found' });
+
     // Ukloni slike koje je admin izbrisao u formi
     let deleteImageIds = [];
     if (req.body.deleteImageIds) {
@@ -264,14 +303,24 @@ router.put('/:id', requireAdmin, handleUpload, async (req, res) => {
     );
     const coverImage = coverRow ? coverRow.image : null;
 
+    const newStatus = req.body.status || 'available';
+    let adoptedAt = null;
+    let adoptedBy = null;
+
+    if (newStatus === 'adopted') {
+      // Ako je već bio udomljen, zadrži originalni datum; inače je ovo trenutak udomljavanja.
+      adoptedAt = existingPet.status === 'adopted' ? existingPet.adopted_at : new Date();
+      adoptedBy = req.body.adopted_by || null;
+    }
+
     const [result] = await pool.query(
       `UPDATE pets SET
          name = ?, species = ?, breed = ?, age = ?, gender = ?, size = ?, location = ?,
          description = ?, description_sr = ?, image = ?, personality = ?,
          vaccinated = ?, neutered = ?, good_with_kids = ?, good_with_dogs = ?, good_with_cats = ?,
-         status = ?
+         status = ?, adopted_at = ?, adopted_by = ?
        WHERE id = ?`,
-      [...petValues(req.body, coverImage, req.body.status), petId]
+      [...petValues(req.body, coverImage, newStatus), adoptedAt, adoptedBy, petId]
     );
 
     if (result.affectedRows === 0) {

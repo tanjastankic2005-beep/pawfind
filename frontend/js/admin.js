@@ -335,6 +335,17 @@ adminMessages.addEventListener('submit', async (event) => {
   }
 });
 
+// ---- Prikaži "Adopted by" samo kad je status "Adopted" ----
+const petStatusSelect = document.querySelector('#petStatus');
+const adoptedByGroup  = document.querySelector('#adoptedByGroup');
+
+function updateAdoptedByVisibility() {
+  adoptedByGroup.classList.toggle('hidden', petStatusSelect.value !== 'adopted');
+}
+
+petStatusSelect.addEventListener('change', updateAdoptedByVisibility);
+
+
 // ---- Forma: otvori ----
 async function openPetForm(pet) {
   petFormMessage.innerHTML = '';
@@ -354,6 +365,7 @@ async function openPetForm(pet) {
     document.querySelector('#petLocation').value    = pet.location;
     document.querySelector('#petPersonality').value = pet.personality || '';
     document.querySelector('#petStatus').value      = pet.status;
+    document.querySelector('#petAdoptedBy').value   = pet.adopted_by || '';
     document.querySelector('#petDescription').value = pet.description || '';
     document.querySelector('#petDescriptionSr').value = pet.description_sr || '';
     document.querySelector('#petVaccinated').checked = pet.vaccinated === 1;
@@ -370,6 +382,7 @@ async function openPetForm(pet) {
     document.querySelector('#petId').value = '';
   }
 
+  updateAdoptedByVisibility();
   renderImagePreview();
   petForm.classList.remove('hidden');
   petForm.scrollIntoView({ behavior: 'smooth' });
@@ -406,6 +419,7 @@ petForm.addEventListener('submit', async (event) => {
   data.append('location',       document.querySelector('#petLocation').value);
   data.append('personality',    document.querySelector('#petPersonality').value);
   data.append('status',         document.querySelector('#petStatus').value);
+  data.append('adopted_by',     document.querySelector('#petAdoptedBy').value);
   data.append('description',    document.querySelector('#petDescription').value);
   data.append('description_sr', document.querySelector('#petDescriptionSr').value);
   data.append('vaccinated',     document.querySelector('#petVaccinated').checked);

@@ -9,6 +9,12 @@ function yesNo(value) {
   return value === 1 ? t('petDetails.yes') : t('petDetails.no');
 }
 
+function formatDate(iso) {
+  return new Date(iso).toLocaleDateString('en-GB', {
+    day: 'numeric', month: 'short', year: 'numeric'
+  });
+}
+
 function renderPet(pet) {
   document.title = `${pet.name} — PawFind`;
 
@@ -72,7 +78,17 @@ function renderPet(pet) {
           <li><span>${t('petDetails.goodWithCats')}</span> <strong>${yesNo(pet.good_with_cats)}</strong></li>
         </ul>
 
-        <a href="apply.html?id=${pet.id}" class="btn btn-primary">${t('petDetails.applyButton')}</a>
+        ${pet.status === 'adopted' ? `
+          <div class="adopted-notice">
+            🎉 ${!pet.adopted_at
+              ? t('adopted.noDateInfo')
+              : pet.adopted_by
+                ? t('adopted.dateAndBy', { date: formatDate(pet.adopted_at), name: pet.adopted_by })
+                : t('adopted.dateOnly', { date: formatDate(pet.adopted_at) })}
+          </div>
+        ` : `
+          <a href="apply.html?id=${pet.id}" class="btn btn-primary">${t('petDetails.applyButton')}</a>
+        `}
 
       </div>
 

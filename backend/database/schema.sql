@@ -29,6 +29,8 @@ CREATE TABLE pets (
   good_with_dogs BOOLEAN      DEFAULT FALSE,
   good_with_cats BOOLEAN      DEFAULT FALSE,
   status         VARCHAR(20)  NOT NULL DEFAULT 'available',
+  adopted_at     TIMESTAMP    NULL,
+  adopted_by     VARCHAR(150),
   created_at     TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -88,6 +88,11 @@ async function getPetById(id) {
 }
 
 
+async function getAdoptedPets() {
+  return request('GET', '/api/pets/adopted');
+}
+
+
 // =========================================
 //  PRIJAVE ZA UDOMLJAVANJE
 // =========================================

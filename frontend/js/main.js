@@ -16,6 +16,7 @@ function addSharedNavLinks() {
   const loginLink = mainNav.querySelector('a[href="login.html"]');
 
   const linksHtml = `
+    <a href="pets-adopted.html" class="nav-link" data-i18n="nav.adopted">Adopted pets</a>
     <a href="add-pet.html" class="nav-link" data-i18n="nav.addPet">Add a pet</a>
     <a href="contact.html" class="nav-link" data-i18n="nav.contact">Contact us</a>
   `;
@@ -30,7 +31,10 @@ function addSharedNavLinks() {
 function addFooterContactLink() {
   const footerNav = document.querySelector('.footer-nav');
   if (footerNav && !footerNav.querySelector('a[href="contact.html"]')) {
-    footerNav.insertAdjacentHTML('beforeend', '<a href="contact.html" data-i18n="nav.contact">Contact us</a>');
+    footerNav.insertAdjacentHTML('beforeend', `
+      <a href="pets-adopted.html" data-i18n="nav.adopted">Adopted pets</a>
+      <a href="contact.html" data-i18n="nav.contact">Contact us</a>
+    `);
   }
 }
 
@@ -59,6 +63,7 @@ async function updateNav() {
       <a href="index.html" class="nav-link" data-i18n="nav.home">Home</a>
       <a href="pets.html" class="nav-link" data-i18n="nav.browsePets">Browse Pets</a>
       <a href="favorites.html" class="nav-link" data-i18n="nav.favorites">Favorites</a>
+      <a href="pets-adopted.html" class="nav-link" data-i18n="nav.adopted">Adopted pets</a>
       <a href="add-pet.html" class="nav-link" data-i18n="nav.addPet">Add a pet</a>
       <a href="contact.html" class="nav-link" data-i18n="nav.contact">Contact us</a>
       ${adminLink}

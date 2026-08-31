@@ -132,11 +132,14 @@ router.patch('/:id/status', requireAdmin, async (req, res) => {
 
     if (status === 'Approved') {
       const [[app]] = await pool.query(
-        'SELECT pet_id FROM applications WHERE id = ?',
+        'SELECT pet_id, applicant_name FROM applications WHERE id = ?',
         [req.params.id]
       );
 
-      await pool.query("UPDATE pets SET status = 'adopted' WHERE id = ?", [app.pet_id]);
+      await pool.query(
+        "UPDATE pets SET status = 'adopted', adopted_at = NOW(), adopted_by = ? WHERE id = ?",
+        [app.applicant_name, app.pet_id]
+      );
     }
 
     res.json({ message: 'Status updated', status });

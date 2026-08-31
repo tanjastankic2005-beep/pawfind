@@ -39,7 +39,7 @@ function createAdoptedCard(pet) {
     <article class="pet-card pet-card-adopted">
       <div class="pet-card-image" data-images='${JSON.stringify(images)}' data-index="0">
         <img src="${images[0]}" alt="${pet.name}, a ${pet.age} year old ${pet.species}">
-        <span class="adopted-badge">🎉</span>
+        <span class="pet-status-badge is-adopted">${t('adopted.badge')}</span>
         ${carouselControls}
       </div>
 
@@ -97,7 +97,11 @@ async function loadAdoptedPets() {
     }
 
     adoptedGrid.innerHTML = pets.map(createAdoptedCard).join('');
-    adoptedCount.textContent = t('adopted.countLabel', { n: pets.length, word: tPetsWord(pets.length) });
+    adoptedCount.textContent = t('adopted.countLabel', {
+      n: pets.length,
+      word: tPetsWord(pets.length),
+      participle: tAdoptedParticiple(pets.length)
+    });
 
   } catch (error) {
     console.error(error);

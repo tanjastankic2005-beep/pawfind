@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add a pet — PawFind</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🐾%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🐾</span>
+        <span class="logo-text">PawFind</span>
+      </a>
+
+      <nav class="main-nav">
+        <a href="index.html" class="nav-link" data-i18n="nav.home">Home</a>
+        <a href="pets.html" class="nav-link" data-i18n="nav.browsePets">Browse Pets</a>
+        <a href="favorites.html" class="nav-link" data-i18n="nav.favorites">Favorites</a>
+        <a href="login.html" class="nav-link" data-i18n="nav.login">Log in</a>
+        <a href="register.html" class="nav-link nav-cta" data-i18n="nav.signup">Sign up</a>
+      </nav>
+
+      <button class="nav-toggle" aria-label="Open menu">☰</button>
+
+    </div>
+  </header>
+
+  <main>
+    <section class="form-section">
+      <div class="container container-narrow">
+
+        <!-- Poruka ako korisnik nije prijavljen -->
+        <div id="addPetGuard"></div>
+
+        <div id="addPetPanel" class="hidden">
+
+          <h1 class="page-title" data-i18n="addPet.pageTitle">List a pet for adoption</h1>
+          <p class="page-subtitle" data-i18n="addPet.pageSubtitle">
+            Know a pet that needs a new home? Tell us about them below.
+            Every listing is reviewed by our team before it goes live.
+          </p>
+
+          <form id="addPetForm" class="form" novalidate>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="petName"><span data-i18n="addPet.nameLabel">Name</span> <span class="required">*</span></label>
+                <input type="text" id="petName">
+              </div>
+              <div class="form-group">
+                <label for="petBreed" data-i18n="addPet.breedLabel">Breed</label>
+                <input type="text" id="petBreed">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="petSpecies"><span data-i18n="addPet.speciesLabel">Species</span> <span class="required">*</span></label>
+                <select id="petSpecies">
+                  <option value="dog" data-i18n="addPet.dog">Dog</option>
+                  <option value="cat" data-i18n="addPet.cat">Cat</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="petAge"><span data-i18n="addPet.ageLabel">Age (years)</span> <span class="required">*</span></label>
+                <input type="number" id="petAge" min="0" max="30">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="petGender"><span data-i18n="addPet.genderLabel">Gender</span> <span class="required">*</span></label>
+                <select id="petGender">
+                  <option value="female" data-i18n="addPet.female">Female</option>
+                  <option value="male" data-i18n="addPet.male">Male</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="petSize"><span data-i18n="addPet.sizeLabel">Size</span> <span class="required">*</span></label>
+                <select id="petSize">
+                  <option value="small" data-i18n="addPet.small">Small</option>
+                  <option value="medium" data-i18n="addPet.medium">Medium</option>
+                  <option value="large" data-i18n="addPet.large">Large</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="petLocation"><span data-i18n="addPet.locationLabel">Location</span> <span class="required">*</span></label>
+                <input type="text" id="petLocation">
+              </div>
+              <div class="form-group">
+                <label for="petPersonality" data-i18n="addPet.personalityLabel">Personality</label>
+                <select id="petPersonality">
+                  <option value="">—</option>
+                  <option value="friendly" data-i18n="pets.friendly">Friendly</option>
+                  <option value="playful" data-i18n="pets.playful">Playful</option>
+                  <option value="calm" data-i18n="pets.calm">Calm</option>
+                  <option value="energetic" data-i18n="pets.energetic">Energetic</option>
+                  <option value="affectionate" data-i18n="pets.affectionate">Affectionate</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="petImages" data-i18n="addPet.photosLabel">Photos</label>
+              <div class="image-upload-box">
+                <input type="file" id="petImages" accept="image/*" multiple>
+                <p class="image-upload-hint" id="petImagesHint" data-i18n="addPet.photosHint">Click to choose photos, or drag them here. You can select several at once.</p>
+                <div id="petImagePreview" class="image-preview-grid"></div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="petDescription" data-i18n="addPet.descriptionLabel">Description</label>
+              <textarea id="petDescription" rows="4" placeholder="Tell us about their personality, history and needs." data-i18n-placeholder="addPet.descriptionPlaceholder"></textarea>
+            </div>
+
+            <fieldset class="form-group">
+              <legend data-i18n="addPet.detailsLegend">Details</legend>
+              <div class="checkbox-group">
+                <label class="checkbox"><input type="checkbox" id="petVaccinated"><span data-i18n="addPet.vaccinated">Vaccinated</span></label>
+                <label class="checkbox"><input type="checkbox" id="petNeutered"><span data-i18n="addPet.neutered">Neutered / spayed</span></label>
+                <label class="checkbox"><input type="checkbox" id="petKids"><span data-i18n="addPet.kids">Good with kids</span></label>
+                <label class="checkbox"><input type="checkbox" id="petDogs"><span data-i18n="addPet.dogs">Good with dogs</span></label>
+                <label class="checkbox"><input type="checkbox" id="petCats"><span data-i18n="addPet.cats">Good with cats</span></label>
+              </div>
+            </fieldset>
+
+            <div id="addPetFormMessage"></div>
+
+            <button type="submit" class="btn btn-primary" id="addPetSubmitButton" data-i18n="addPet.submitButton">
+              Submit for review
+            </button>
+
+          </form>
+
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+
+      <div class="footer-brand">
+        <span class="logo-icon">🐾</span> PawFind
+        <p class="footer-tagline" data-i18n="footer.tagline">Find your new best friend.</p>
+      </div>
+
+      <nav class="footer-nav">
+        <a href="pets.html" data-i18n="nav.browsePets">Browse Pets</a>
+        <a href="favorites.html" data-i18n="nav.favorites">Favorites</a>
+        <a href="login.html" data-i18n="nav.login">Log in</a>
+        <a href="register.html" data-i18n="nav.signup">Sign up</a>
+      </nav>
+
+    </div>
+
+    <div class="container footer-bottom">
+      <p data-i18n="footer.copyright">© 2026 PawFind. A student project by Tanja Stankic.</p>
+    </div>
+  </footer>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/add-pet.js"></script>
+</body>
+</html>

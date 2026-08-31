@@ -50,6 +50,7 @@ junction table for favourites.
 - Apply to adopt, with or without an account
 - Send a message from the Contact us page
 - Switch the whole site between English and Serbian (Latin) — the choice is remembered per browser
+- Browse pets that have already found a home
 
 ### For registered users
 - Create an account with a hashed password
@@ -65,6 +66,7 @@ junction table for favourites.
 - View all applications, including guest applications
 - Change application status — approving one automatically marks the pet as adopted
 - Read and reply to Contact us messages
+- Pick the home page hero photo from every photo ever uploaded for a pet, or upload a brand new one
 
 ---
 
@@ -91,16 +93,16 @@ backend/database/schema.sql
 backend/database/seed.sql
 ```
 
-The first creates the database and its six tables.
+The first creates the database and its seven tables.
 The second fills the `pets` table with sample data.
 
 Already have a database from before `pet_images`, `messages`,
-`pets.description_sr` or `messages.reply` existed? Run the matching file(s)
-from `backend/database/migrate-*.sql` instead — each adds just its own table
-or column (`migrate-pet-images.sql` also copies each pet's existing `image`
-into `pet_images`; `migrate-description-sr.sql` also backfills a Serbian
-description for the six pets from `seed.sql`) without touching the rest of
-your data.
+`pets.description_sr`, `messages.reply`, `pets.adopted_at`/`adopted_by` or
+`settings` existed? Run the matching file(s) from `backend/database/migrate-*.sql`
+instead — each adds just its own table or column (`migrate-pet-images.sql` also
+copies each pet's existing `image` into `pet_images`; `migrate-description-sr.sql`
+also backfills a Serbian description for the six pets from `seed.sql`) without
+touching the rest of your data.
 
 ### 3. Configure environment variables
 
@@ -144,7 +146,8 @@ Log out and back in — an **Admin** link appears in the navigation.
 
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
-| `GET` | `/api/pets` | public | List available pets, with search, filters and sorting |
+| `GET` | `/api/pets` | public | List available and adopted pets, with search, filters and sorting |
+| `GET` | `/api/pets/adopted` | public | Pets who found a new home, most recent first |
 | `GET` | `/api/pets/:id` | public | Single pet, with its photos |
 | `POST` | `/api/pets` | admin | Create a pet |
 | `POST` | `/api/pets/submit` | user | Submit a pet for adoption — goes live as `pending` until an admin approves it |
@@ -168,6 +171,10 @@ Log out and back in — an **Admin** link appears in the navigation.
 | `GET` | `/api/admin/messages` | admin | All contact messages, unanswered ones first |
 | `PATCH` | `/api/admin/messages/:id/reply` | admin | Save a reply and open it in the admin's email client |
 | `DELETE` | `/api/admin/messages/:id` | admin | Delete a contact message |
+| `GET` | `/api/settings` | public | Site settings (currently just the home page photo) |
+| `GET` | `/api/admin/images` | admin | Every photo ever uploaded for a pet, most recent first |
+| `PUT` | `/api/admin/settings/hero-image` | admin | Set the home page hero photo to an existing one |
+| `POST` | `/api/admin/settings/hero-image/upload` | admin | Upload a brand new photo and use it as the hero photo |
 
 **Query parameters on `/api/pets`:**
 `search`, `species`, `gender`, `age`, `size`, `location`, `personality`, `sort`
@@ -188,7 +195,8 @@ users                    pets                     pet_images
   created_at               image (cover), personality,
                            vaccinated, neutered,
                            good_with_kids / dogs / cats
-                           status, created_at
+                           status, adopted_at, adopted_by,
+                           created_at
       |                        |    |                  |
       |  1                   1 |    |  1              N |
       |                        |    +--------------------+
@@ -203,6 +211,9 @@ users                    pets                     pet_images
 
 messages (standalone — no foreign keys)
   id (PK), name, email, message, reply, replied_at, created_at
+
+settings (standalone — key/value pairs, e.g. hero_image)
+  setting_key (PK), setting_value
 ```
 
 `applications.user_id` is nullable so visitors can apply without an account.
@@ -218,6 +229,11 @@ an admin edits them to `available` from the dashboard.
 `messages` stores submissions from the Contact us page for admins to read, reply to and delete.
 There is no email-sending service configured, so a reply is saved in `reply` / `replied_at` and
 also opened as a pre-filled `mailto:` link, which sends through the admin's own email account.
+When a pet's status becomes `adopted` (an admin edit, or approving an application) `adopted_at`
+is set automatically and `adopted_by` records who adopted them; both are shown on the pet's page
+and on the "pets who found a new home" listing.
+`settings` is a generic key/value table; today it only holds `hero_image`, the photo an admin
+picked (from every photo ever uploaded for a pet) for the home page hero section.
 All foreign-keyed tables above use `ON DELETE CASCADE`.
 
 ---
@@ -232,14 +248,16 @@ pawfind/
 │   │   ├── schema.sql       table definitions
 │   │   └── seed.sql         sample data
 │   ├── middleware/
-│   │   └── auth.js          requireAuth, requireAdmin
+│   │   ├── auth.js          requireAuth, requireAdmin
+│   │   └── upload.js        shared multer config for photo uploads
 │   ├── routes/
 │   │   ├── pets.js
 │   │   ├── auth.js
 │   │   ├── applications.js
 │   │   ├── favorites.js
 │   │   ├── admin.js
-│   │   └── contact.js
+│   │   ├── contact.js
+│   │   └── settings.js
 │   └── server.js            configuration and route mounting
 │
 ├── frontend/

@@ -11,13 +11,143 @@ if (navToggle && mainNav) {
 
 // ---- Početna: slika koju je admin izabrao za hero sekciju ----
 const heroImage = document.querySelector('#heroImage');
-if (heroImage) {
-  getSettings()
-    .then(settings => {
-      if (settings && settings.hero_image) heroImage.src = settings.hero_image;
+
+// ---- Početna: "coverflow" karusel uspješnih priča ----
+// Sve priče se iscrtaju odjednom u traku; klik na strelicu samo pomjera traku
+// i mijenja koja je kartica "aktivna" — CSS tranzicije rade animaciju.
+const successStorySection = document.querySelector('#successStorySection');
+const successStoryTrack   = document.querySelector('#successStoryTrack');
+const successStoryPrev    = document.querySelector('#successStoryPrev');
+const successStoryNext    = document.querySelector('#successStoryNext');
+const successStoryDots    = document.querySelector('#successStoryDots');
+
+const STORY_SLIDE_WIDTH = 70;                        // mora odgovarati .success-story-slide { flex-basis } u CSS-u
+const STORY_SLIDE_PEEK  = (100 - STORY_SLIDE_WIDTH) / 2;
+
+let successStories    = [];
+let currentStoryIndex = 0;
+
+// Mini-slajd fotografija UNUTAR jedne priče (npr. dvije fotografije istog ljubimca)
+function setupStoryPhotoNav(imageWrap, images) {
+  const imageEl = imageWrap.querySelector('.success-story-photo');
+  imageEl.src = images[0];
+  if (images.length <= 1) return;
+
+  let photoIndex = 0;
+
+  const prevButton = document.createElement('button');
+  prevButton.type = 'button';
+  prevButton.className = 'image-nav image-nav-prev';
+  prevButton.setAttribute('aria-label', 'Previous photo');
+  prevButton.textContent = '‹';
+
+  const nextButton = document.createElement('button');
+  nextButton.type = 'button';
+  nextButton.className = 'image-nav image-nav-next';
+  nextButton.setAttribute('aria-label', 'Next photo');
+  nextButton.textContent = '›';
+
+  const dotsWrap = document.createElement('div');
+  dotsWrap.className = 'image-dots';
+  dotsWrap.innerHTML = images.map((_, i) => `<span class="image-dot ${i === 0 ? 'is-active' : ''}"></span>`).join('');
+
+  function show(newIndex) {
+    photoIndex = (newIndex + images.length) % images.length;
+    imageEl.src = images[photoIndex];
+    dotsWrap.querySelectorAll('.image-dot').forEach((dot, i) => dot.classList.toggle('is-active', i === photoIndex));
+  }
+
+  prevButton.addEventListener('click', (event) => { event.stopPropagation(); show(photoIndex - 1); });
+  nextButton.addEventListener('click', (event) => { event.stopPropagation(); show(photoIndex + 1); });
+
+  imageWrap.append(prevButton, nextButton, dotsWrap);
+}
+
+function applyAllCaptions() {
+  successStoryTrack.querySelectorAll('.success-story-slide').forEach((slideEl, i) => {
+    const story = successStories[i];
+    const text = (typeof getLang === 'function' && getLang() === 'sr' && story.text_sr)
+      ? story.text_sr
+      : story.text;
+    slideEl.querySelector('.success-story-caption').textContent = text;
+  });
+}
+
+// Prelazak između PRIČA — samo pomjera traku i mijenja koja kartica je "u fokusu"
+function showStory(index) {
+  currentStoryIndex = (index + successStories.length) % successStories.length;
+
+  successStoryTrack.querySelectorAll('.success-story-slide').forEach((slideEl, i) => {
+    slideEl.classList.toggle('is-active', i === currentStoryIndex);
+  });
+
+  const offset = STORY_SLIDE_PEEK - (currentStoryIndex * STORY_SLIDE_WIDTH);
+  successStoryTrack.style.transform = `translateX(${offset}%)`;
+
+  successStoryDots.querySelectorAll('.success-story-dot').forEach((dot, i) => {
+    dot.classList.toggle('is-active', i === currentStoryIndex);
+  });
+}
+
+function initSuccessStories(stories) {
+  successStories = stories.filter(story => story.images.length > 0);
+  if (!successStorySection || successStories.length === 0) return;
+
+  successStoryTrack.innerHTML = successStories.map(() => `
+    <div class="success-story-slide">
+      <div class="success-story-card">
+        <div class="success-story-image-wrap">
+          <img class="success-story-photo" src="" alt="">
+        </div>
+        <p class="success-story-caption"></p>
+      </div>
+    </div>
+  `).join('');
+
+  successStoryTrack.querySelectorAll('.success-story-slide').forEach((slideEl, index) => {
+    setupStoryPhotoNav(slideEl.querySelector('.success-story-image-wrap'), successStories[index].images);
+    slideEl.addEventListener('click', () => {
+      if (index !== currentStoryIndex) showStory(index);
+    });
+  });
+
+  const multiple = successStories.length > 1;
+  successStoryPrev.classList.toggle('hidden', !multiple);
+  successStoryNext.classList.toggle('hidden', !multiple);
+  successStoryDots.classList.toggle('hidden', !multiple);
+
+  successStoryDots.innerHTML = successStories
+    .map((_, i) => `<button type="button" class="success-story-dot" aria-label="Story ${i + 1}"></button>`)
+    .join('');
+
+  successStoryDots.querySelectorAll('.success-story-dot').forEach((dot, i) => {
+    dot.addEventListener('click', () => showStory(i));
+  });
+
+  successStoryPrev.addEventListener('click', () => showStory(currentStoryIndex - 1));
+  successStoryNext.addEventListener('click', () => showStory(currentStoryIndex + 1));
+
+  applyAllCaptions();
+  showStory(0);
+  successStorySection.classList.remove('hidden');
+}
+
+if (heroImage || successStorySection) {
+  Promise.all([
+    getSettings(),
+    successStorySection ? getSuccessStories() : Promise.resolve([])
+  ])
+    .then(([settings, stories]) => {
+      if (heroImage && settings.hero_image) heroImage.src = settings.hero_image;
+      initSuccessStories(stories);
     })
     .catch(error => console.error(error));
 }
+
+window.addEventListener('pawfind:langchange', () => {
+  if (successStories.length === 0) return;
+  applyAllCaptions();
+});
 
 
 // ---- "Add a pet" i "Contact us" su dostupni i gostima i prijavljenim korisnicima ----

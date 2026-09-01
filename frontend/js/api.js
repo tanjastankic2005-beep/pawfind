@@ -238,6 +238,48 @@ async function uploadHeroImage(file) {
 }
 
 
+async function getSuccessStories() {
+  return request('GET', '/api/success-stories');
+}
+
+
+async function getAdminSuccessStories() {
+  return request('GET', '/api/admin/success-stories');
+}
+
+
+async function createSuccessStory(text, textSr) {
+  return request('POST', '/api/admin/success-stories', { text, text_sr: textSr });
+}
+
+
+async function updateSuccessStory(id, text, textSr) {
+  return request('PUT', `/api/admin/success-stories/${id}`, { text, text_sr: textSr });
+}
+
+
+async function deleteSuccessStory(id) {
+  return request('DELETE', `/api/admin/success-stories/${id}`);
+}
+
+
+async function addSuccessStoryImage(storyId, image) {
+  return request('POST', `/api/admin/success-stories/${storyId}/images`, { image });
+}
+
+
+async function uploadSuccessStoryImage(storyId, file) {
+  const data = new FormData();
+  data.append('image', file);
+  return request('POST', `/api/admin/success-stories/${storyId}/images/upload`, data);
+}
+
+
+async function removeSuccessStoryImage(storyId, imageId) {
+  return request('DELETE', `/api/admin/success-stories/${storyId}/images/${imageId}`);
+}
+
+
 // =========================================
 //  DODAVANJE LJUBIMCA (prijavljeni korisnici)
 // =========================================

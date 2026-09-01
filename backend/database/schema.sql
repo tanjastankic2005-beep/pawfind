@@ -93,4 +93,23 @@ CREATE TABLE settings (
   setting_value VARCHAR(255) NOT NULL
 );
 
+CREATE TABLE success_stories (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  text       VARCHAR(255) NOT NULL,
+  text_sr    VARCHAR(255),
+  sort_order INT          NOT NULL DEFAULT 0,
+  created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE success_story_images (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  story_id   INT          NOT NULL,
+  image      VARCHAR(255) NOT NULL,
+  sort_order INT          NOT NULL DEFAULT 0,
+  created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (story_id) REFERENCES success_stories(id) ON DELETE CASCADE,
+  UNIQUE (story_id, image)
+);
+
 INSERT INTO settings (setting_key, setting_value) VALUES ('hero_image', 'images/hero.jpg');

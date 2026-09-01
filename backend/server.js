@@ -16,6 +16,7 @@ const favoritesRoutes    = require('./routes/favorites');
 const adminRoutes        = require('./routes/admin');
 const contactRoutes      = require('./routes/contact');
 const settingsRoutes     = require('./routes/settings');
+const successStoriesRoutes = require('./routes/success-stories');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -47,6 +48,7 @@ app.use('/api/favorites',    favoritesRoutes);
 app.use('/api/admin',        adminRoutes);
 app.use('/api/contact',      contactRoutes);
 app.use('/api/settings',     settingsRoutes);
+app.use('/api/success-stories', successStoriesRoutes);
 
 
 // ---------- 404 za nepostojeće API rute ----------

@@ -338,98 +338,320 @@ adminMessages.addEventListener('submit', async (event) => {
 });
 
 
-// ---- Slika na početnoj stranici ----
-async function loadHeroImagePicker() {
+// ---- Generički birač slike + upload (koristi se za hero i uspješnu priču) ----
+function setupImagePicker({ pickerEl, previewEl, uploadInputEl, fallbackImage, getCurrentImage, onPick, onUpload }) {
+  const uploadHintEl = uploadInputEl.parentElement.querySelector('.image-upload-hint');
+  const uploadBox    = uploadInputEl.closest('.image-upload-box');
+  const defaultHint  = uploadHintEl.textContent;
+
+  async function render() {
+    try {
+      const [settings, images] = await Promise.all([getSettings(), getAdminImages()]);
+      const currentImage = getCurrentImage(settings) || fallbackImage;
+      previewEl.src = currentImage;
+
+      pickerEl.innerHTML = images.map(image => `
+        <button type="button"
+                class="image-picker-item ${image === currentImage ? 'is-selected' : ''}"
+                data-image="${image}">
+          <img src="${image}" alt="">
+        </button>
+      `).join('');
+
+    } catch (error) {
+      console.error(error);
+      pickerEl.innerHTML = `<p class="state-message">Could not load saved photos.</p>`;
+    }
+  }
+
+  pickerEl.addEventListener('click', async (event) => {
+    const button = event.target.closest('.image-picker-item');
+    if (!button) return;
+
+    const image = button.dataset.image;
+
+    try {
+      await onPick(image);
+      previewEl.src = image;
+      pickerEl.querySelectorAll('.image-picker-item').forEach(el => {
+        el.classList.toggle('is-selected', el.dataset.image === image);
+      });
+      showToast('Photo updated.', 'success');
+    } catch (error) {
+      console.error(error);
+      showToast('Could not update the photo.');
+    }
+  });
+
+  async function handleFile(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+
+    uploadHintEl.textContent = 'Uploading…';
+
+    try {
+      const image = await onUpload(file);
+      previewEl.src = image;
+      pickerEl.querySelectorAll('.image-picker-item').forEach(el => el.classList.remove('is-selected'));
+      showToast('Photo updated.', 'success');
+    } catch (error) {
+      console.error(error);
+      showToast('Could not upload the photo.');
+    } finally {
+      uploadHintEl.textContent = defaultHint;
+      uploadInputEl.value = '';
+    }
+  }
+
+  uploadInputEl.addEventListener('change', () => handleFile(uploadInputEl.files[0]));
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    uploadBox.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      uploadBox.classList.add('is-dragover');
+    });
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    uploadBox.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      uploadBox.classList.remove('is-dragover');
+    });
+  });
+
+  uploadBox.addEventListener('drop', (event) => handleFile(event.dataTransfer.files[0]));
+
+  return { render };
+}
+
+const heroPicker = setupImagePicker({
+  pickerEl: heroImagePicker,
+  previewEl: currentHeroPreview,
+  uploadInputEl: document.querySelector('#heroUploadInput'),
+  fallbackImage: 'images/hero.jpg',
+  getCurrentImage: settings => settings.hero_image,
+  onPick: updateHeroImage,
+  onUpload: async file => (await uploadHeroImage(file)).hero_image
+});
+
+// ---- Uspješne priče: više nezavisnih priča, svaka sa svojim slikama i natpisom ----
+const successStoriesList = document.querySelector('#successStoriesList');
+
+let successStoriesAdmin = [];
+let allPetImagesCache   = [];
+let openStoryPickerId   = null;
+
+function firstErrorMessage(error, fallback) {
+  return (error.data && error.data.errors && error.data.errors[0]) || fallback;
+}
+
+function successStoryCardHtml(story) {
+  const photosHtml = story.images.length > 0
+    ? story.images.map(img => `
+        <div class="image-preview-item">
+          <img src="${img.image}" alt="">
+          <button type="button" class="image-preview-remove" data-action="remove-photo" data-story="${story.id}" data-image-id="${img.id}" title="Remove photo">×</button>
+        </div>
+      `).join('')
+    : `<p class="state-message">No photo yet — add one below.</p>`;
+
+  const pickerOpen    = openStoryPickerId === story.id;
+  const currentPaths  = story.images.map(img => img.image);
+
+  const pickerPanel = pickerOpen ? `
+    <div class="success-story-picker-panel">
+      <div class="image-picker-grid">
+        ${allPetImagesCache.map(image => `
+          <button type="button"
+                  class="image-picker-item ${currentPaths.includes(image) ? 'is-selected' : ''}"
+                  data-action="add-existing-photo" data-story="${story.id}" data-image="${image}">
+            <img src="${image}" alt="">
+          </button>
+        `).join('')}
+      </div>
+      <div class="image-upload-box">
+        <input type="file" class="story-upload-input" data-story="${story.id}" accept="image/*">
+        <p class="image-upload-hint">Click to choose a photo, or drag it here.</p>
+      </div>
+    </div>
+  ` : '';
+
+  return `
+    <div class="success-story-admin-card">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Caption (English)</label>
+          <input type="text" class="story-text-en" data-story="${story.id}" value="${story.text}">
+        </div>
+        <div class="form-group">
+          <label>Caption (Serbian)</label>
+          <input type="text" class="story-text-sr" data-story="${story.id}" value="${story.text_sr || ''}">
+        </div>
+      </div>
+
+      <div class="image-preview-grid">${photosHtml}</div>
+
+      <div class="success-story-admin-actions">
+        <button type="button" class="link-btn" data-action="save-text" data-story="${story.id}">Save caption</button>
+        <button type="button" class="link-btn" data-action="toggle-picker" data-story="${story.id}">${pickerOpen ? 'Close' : '+ Add photo'}</button>
+        <button type="button" class="link-btn link-danger" data-action="delete-story" data-story="${story.id}">Delete story</button>
+      </div>
+
+      ${pickerPanel}
+    </div>
+  `;
+}
+
+function renderSuccessStoriesList() {
+  successStoriesList.innerHTML = successStoriesAdmin.length > 0
+    ? successStoriesAdmin.map(successStoryCardHtml).join('')
+    : `<p class="state-message">No success stories yet — add one below.</p>`;
+}
+
+async function loadSuccessStories() {
   try {
-    const [settings, images] = await Promise.all([
-      getSettings(),
+    [successStoriesAdmin, allPetImagesCache] = await Promise.all([
+      getAdminSuccessStories(),
       getAdminImages()
     ]);
-
-    const currentImage = settings.hero_image || 'images/hero.jpg';
-    currentHeroPreview.src = currentImage;
-
-    heroImagePicker.innerHTML = images.map(image => `
-      <button type="button"
-              class="image-picker-item ${image === currentImage ? 'is-selected' : ''}"
-              data-image="${image}">
-        <img src="${image}" alt="">
-      </button>
-    `).join('');
-
+    renderSuccessStoriesList();
   } catch (error) {
     console.error(error);
-    heroImagePicker.innerHTML = `<p class="state-message">Could not load saved photos.</p>`;
+    successStoriesList.innerHTML = `<p class="state-message">Could not load success stories.</p>`;
   }
 }
 
-heroImagePicker.addEventListener('click', async (event) => {
-  const button = event.target.closest('.image-picker-item');
-  if (!button) return;
-
-  const image = button.dataset.image;
+document.querySelector('#addSuccessStoryButton').addEventListener('click', async () => {
+  const textEn = prompt('Caption for the new story (English):');
+  if (!textEn || !textEn.trim()) return;
 
   try {
-    await updateHeroImage(image);
-    currentHeroPreview.src = image;
-    heroImagePicker.querySelectorAll('.image-picker-item').forEach(el => {
-      el.classList.toggle('is-selected', el.dataset.image === image);
-    });
-    showToast('Home page photo updated.', 'success');
+    await createSuccessStory(textEn.trim(), '');
+    await loadSuccessStories();
+    showToast('Story added — now add a photo.', 'success');
   } catch (error) {
     console.error(error);
-    showToast('Could not update the home page photo.');
+    showToast(firstErrorMessage(error, 'Could not add the story.'));
   }
 });
 
+successStoriesList.addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-action]');
+  if (!button) return;
 
-// ---- Ili otpremi sasvim novu sliku za početnu ----
-const heroUploadInput = document.querySelector('#heroUploadInput');
-const heroUploadHint  = document.querySelector('#heroUploadHint');
-const heroUploadBox   = heroUploadInput.closest('.image-upload-box');
+  const action  = button.dataset.action;
+  const storyId = Number(button.dataset.story);
 
-async function handleHeroFile(file) {
+  if (action === 'toggle-picker') {
+    openStoryPickerId = openStoryPickerId === storyId ? null : storyId;
+    renderSuccessStoriesList();
+    return;
+  }
+
+  if (action === 'save-text') {
+    const card  = button.closest('.success-story-admin-card');
+    const textEn = card.querySelector('.story-text-en').value.trim();
+    const textSr = card.querySelector('.story-text-sr').value.trim();
+
+    if (!textEn) { showToast('Please write an English caption.'); return; }
+
+    try {
+      await updateSuccessStory(storyId, textEn, textSr);
+      showToast('Caption saved.', 'success');
+    } catch (error) {
+      console.error(error);
+      showToast(firstErrorMessage(error, 'Could not save the caption.'));
+    }
+    return;
+  }
+
+  if (action === 'delete-story') {
+    if (!confirm('Delete this success story? This cannot be undone.')) return;
+
+    try {
+      await deleteSuccessStory(storyId);
+      if (openStoryPickerId === storyId) openStoryPickerId = null;
+      await loadSuccessStories();
+      showToast('Story deleted.', 'success');
+    } catch (error) {
+      console.error(error);
+      showToast('Could not delete the story.');
+    }
+    return;
+  }
+
+  if (action === 'add-existing-photo') {
+    try {
+      await addSuccessStoryImage(storyId, button.dataset.image);
+      await loadSuccessStories();
+      showToast('Photo added.', 'success');
+    } catch (error) {
+      console.error(error);
+      showToast(firstErrorMessage(error, 'Could not add the photo.'));
+    }
+    return;
+  }
+
+  if (action === 'remove-photo') {
+    try {
+      await removeSuccessStoryImage(storyId, Number(button.dataset.imageId));
+      await loadSuccessStories();
+      showToast('Photo removed.', 'success');
+    } catch (error) {
+      console.error(error);
+      showToast('Could not remove the photo.');
+    }
+  }
+});
+
+async function handleStoryUpload(storyId, file) {
   if (!file || !file.type.startsWith('image/')) return;
 
-  heroUploadHint.textContent = 'Uploading…';
-
   try {
-    const result = await uploadHeroImage(file);
-    currentHeroPreview.src = result.hero_image;
-    heroImagePicker.querySelectorAll('.image-picker-item').forEach(el => {
-      el.classList.remove('is-selected');
-    });
-    showToast('Home page photo updated.', 'success');
+    await uploadSuccessStoryImage(storyId, file);
+    await loadSuccessStories();
+    showToast('Photo added.', 'success');
   } catch (error) {
     console.error(error);
-    showToast('Could not upload the home page photo.');
-  } finally {
-    heroUploadHint.textContent = 'Click to choose a photo, or drag it here.';
-    heroUploadInput.value = '';
+    showToast(firstErrorMessage(error, 'Could not upload the photo.'));
   }
 }
 
-heroUploadInput.addEventListener('change', () => {
-  handleHeroFile(heroUploadInput.files[0]);
+successStoriesList.addEventListener('change', (event) => {
+  const input = event.target.closest('.story-upload-input');
+  if (!input) return;
+  handleStoryUpload(Number(input.dataset.story), input.files[0]);
+  input.value = '';
 });
 
 ['dragenter', 'dragover'].forEach(eventName => {
-  heroUploadBox.addEventListener(eventName, (event) => {
+  successStoriesList.addEventListener(eventName, (event) => {
+    const box = event.target.closest('.image-upload-box');
+    if (!box) return;
     event.preventDefault();
-    heroUploadBox.classList.add('is-dragover');
+    box.classList.add('is-dragover');
   });
 });
 
 ['dragleave', 'drop'].forEach(eventName => {
-  heroUploadBox.addEventListener(eventName, (event) => {
+  successStoriesList.addEventListener(eventName, (event) => {
+    const box = event.target.closest('.image-upload-box');
+    if (!box) return;
     event.preventDefault();
-    heroUploadBox.classList.remove('is-dragover');
+    box.classList.remove('is-dragover');
   });
 });
 
-heroUploadBox.addEventListener('drop', (event) => {
-  handleHeroFile(event.dataTransfer.files[0]);
+successStoriesList.addEventListener('drop', (event) => {
+  const box = event.target.closest('.image-upload-box');
+  if (!box) return;
+  const input = box.querySelector('.story-upload-input');
+  handleStoryUpload(Number(input.dataset.story), event.dataTransfer.files[0]);
 });
+
+async function loadHomePagePanel() {
+  await heroPicker.render();
+  await loadSuccessStories();
+}
 
 
 // ---- Prikaži "Adopted by" samo kad je status "Adopted" ----
@@ -620,7 +842,7 @@ async function init() {
     await loadPetsTable();
     await loadApplicationsList();
     await loadMessagesList();
-    await loadHeroImagePicker();
+    await loadHomePagePanel();
 
   } catch (error) {
     console.error(error);

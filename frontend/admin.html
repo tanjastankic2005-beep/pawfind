@@ -223,7 +223,7 @@
 
       <!-- ============ POČETNA STRANICA ============ -->
       <section class="container tab-panel hidden" id="panel-home">
-        <h2 class="section-subtitle">Home page photo</h2>
+        <h2 class="section-subtitle">Home page hero photo</h2>
         <p class="panel-hint">Pick the photo shown in the hero section on the home page, from every photo ever uploaded for a pet.</p>
 
         <div class="current-hero">
@@ -238,6 +238,19 @@
           <input type="file" id="heroUploadInput" accept="image/*">
           <p class="image-upload-hint" id="heroUploadHint">Click to choose a photo, or drag it here.</p>
         </div>
+
+        <hr class="panel-divider">
+
+        <h2 class="section-subtitle">Success story spotlight</h2>
+        <p class="panel-hint">
+          Show off real adoptions on the home page as a set of cards visitors can page through —
+          great content to reuse on Instagram, TikTok, Facebook or a newsletter too. Add as many
+          stories as you like; the section stays hidden while there are none.
+        </p>
+
+        <div id="successStoriesList"></div>
+
+        <button type="button" class="btn btn-primary btn-sm panel-section-gap" id="addSuccessStoryButton">+ Add a success story</button>
       </section>
 
     </div>

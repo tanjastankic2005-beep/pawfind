@@ -9,7 +9,7 @@ const router = express.Router();
 // Cijeli admin dio traži admin prava
 router.use(requireAdmin);
 
-function handleHeroUpload(req, res, next) {
+function handleSingleImageUpload(req, res, next) {
   upload.single('image')(req, res, (error) => {
     if (error instanceof multer.MulterError) {
       const message = error.code === 'LIMIT_FILE_SIZE'
@@ -152,11 +152,11 @@ router.get('/images', async (req, res) => {
 });
 
 
-async function setHeroImage(image) {
+async function setSetting(key, value) {
   await pool.query(
-    `INSERT INTO settings (setting_key, setting_value) VALUES ('hero_image', ?)
+    `INSERT INTO settings (setting_key, setting_value) VALUES (?, ?)
      ON DUPLICATE KEY UPDATE setting_value = ?`,
-    [image, image]
+    [key, value, value]
   );
 }
 
@@ -166,7 +166,7 @@ router.put('/settings/hero-image', async (req, res) => {
     const image = (req.body.image || '').trim();
     if (!image) return res.status(400).json({ errors: ['No image selected.'] });
 
-    await setHeroImage(image);
+    await setSetting('hero_image', image);
     res.json({ message: 'Home page image updated', hero_image: image });
 
   } catch (error) {
@@ -177,16 +177,190 @@ router.put('/settings/hero-image', async (req, res) => {
 
 
 // ---- POST /api/admin/settings/hero-image/upload (potpuno nova slika) ----
-router.post('/settings/hero-image/upload', handleHeroUpload, async (req, res) => {
+router.post('/settings/hero-image/upload', handleSingleImageUpload, async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ errors: ['No photo uploaded.'] });
 
     const image = imagePathOf(req.file);
-    await setHeroImage(image);
+    await setSetting('hero_image', image);
     res.json({ message: 'Home page image updated', hero_image: image });
 
   } catch (error) {
     console.error('Greška pri otpremanju slike za početnu:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+const MAX_STORY_IMAGES = 5;
+
+async function addStoryImage(storyId, image) {
+  const [[{ total }]] = await pool.query(
+    'SELECT COUNT(*) AS total FROM success_story_images WHERE story_id = ?',
+    [storyId]
+  );
+  if (total >= MAX_STORY_IMAGES) {
+    const error = new Error(`You can only add up to ${MAX_STORY_IMAGES} photos per story.`);
+    error.isLimit = true;
+    throw error;
+  }
+
+  const [[{ maxOrder }]] = await pool.query(
+    'SELECT COALESCE(MAX(sort_order), -1) AS maxOrder FROM success_story_images WHERE story_id = ?',
+    [storyId]
+  );
+
+  await pool.query(
+    'INSERT IGNORE INTO success_story_images (story_id, image, sort_order) VALUES (?, ?, ?)',
+    [storyId, image, maxOrder + 1]
+  );
+}
+
+// ---- GET /api/admin/success-stories ----
+router.get('/success-stories', async (req, res) => {
+  try {
+    const [stories] = await pool.query(
+      'SELECT id, text, text_sr FROM success_stories ORDER BY sort_order ASC, id ASC'
+    );
+
+    if (stories.length > 0) {
+      const [images] = await pool.query(
+        'SELECT id, story_id, image FROM success_story_images WHERE story_id IN (?) ORDER BY sort_order ASC, id ASC',
+        [stories.map(story => story.id)]
+      );
+
+      const imagesByStory = {};
+      for (const img of images) {
+        (imagesByStory[img.story_id] ??= []).push({ id: img.id, image: img.image });
+      }
+
+      for (const story of stories) {
+        story.images = imagesByStory[story.id] || [];
+      }
+    }
+
+    res.json(stories);
+
+  } catch (error) {
+    console.error('Greška pri čitanju uspješnih priča:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// ---- POST /api/admin/success-stories (nova priča) ----
+router.post('/success-stories', async (req, res) => {
+  try {
+    const text   = (req.body.text || '').trim();
+    const textSr = (req.body.text_sr || '').trim() || null;
+
+    if (!text) return res.status(400).json({ errors: ['Caption cannot be empty.'] });
+
+    const [[{ maxOrder }]] = await pool.query(
+      'SELECT COALESCE(MAX(sort_order), -1) AS maxOrder FROM success_stories'
+    );
+
+    const [result] = await pool.query(
+      'INSERT INTO success_stories (text, text_sr, sort_order) VALUES (?, ?, ?)',
+      [text, textSr, maxOrder + 1]
+    );
+
+    res.status(201).json({ id: result.insertId, message: 'Story added' });
+
+  } catch (error) {
+    console.error('Greška pri dodavanju priče:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// ---- PUT /api/admin/success-stories/:id (izmjena natpisa) ----
+router.put('/success-stories/:id', async (req, res) => {
+  try {
+    const text   = (req.body.text || '').trim();
+    const textSr = (req.body.text_sr || '').trim() || null;
+
+    if (!text) return res.status(400).json({ errors: ['Caption cannot be empty.'] });
+
+    const [result] = await pool.query(
+      'UPDATE success_stories SET text = ?, text_sr = ? WHERE id = ?',
+      [text, textSr, req.params.id]
+    );
+
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'Story not found' });
+
+    res.json({ message: 'Caption updated' });
+
+  } catch (error) {
+    console.error('Greška pri izmjeni priče:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// ---- DELETE /api/admin/success-stories/:id ----
+router.delete('/success-stories/:id', async (req, res) => {
+  try {
+    const [result] = await pool.query('DELETE FROM success_stories WHERE id = ?', [req.params.id]);
+
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'Story not found' });
+
+    res.json({ message: 'Story deleted' });
+
+  } catch (error) {
+    console.error('Greška pri brisanju priče:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// ---- POST /api/admin/success-stories/:id/images (dodaj iz postojećih slika) ----
+router.post('/success-stories/:id/images', async (req, res) => {
+  try {
+    const image = (req.body.image || '').trim();
+    if (!image) return res.status(400).json({ errors: ['No image selected.'] });
+
+    await addStoryImage(req.params.id, image);
+    res.status(201).json({ message: 'Photo added' });
+
+  } catch (error) {
+    if (error.isLimit) return res.status(400).json({ errors: [error.message] });
+    console.error('Greška pri dodavanju slike priče:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// ---- POST /api/admin/success-stories/:id/images/upload (potpuno nova slika) ----
+router.post('/success-stories/:id/images/upload', handleSingleImageUpload, async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ errors: ['No photo uploaded.'] });
+
+    await addStoryImage(req.params.id, imagePathOf(req.file));
+    res.status(201).json({ message: 'Photo added' });
+
+  } catch (error) {
+    if (error.isLimit) return res.status(400).json({ errors: [error.message] });
+    console.error('Greška pri otpremanju slike priče:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// ---- DELETE /api/admin/success-stories/:storyId/images/:imageId ----
+router.delete('/success-stories/:storyId/images/:imageId', async (req, res) => {
+  try {
+    const [result] = await pool.query(
+      'DELETE FROM success_story_images WHERE id = ? AND story_id = ?',
+      [req.params.imageId, req.params.storyId]
+    );
+
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'Photo not found' });
+
+    res.json({ message: 'Photo removed' });
+
+  } catch (error) {
+    console.error('Greška pri uklanjanju slike priče:', error.message);
     res.status(500).json({ error: 'Database error' });
   }
 });

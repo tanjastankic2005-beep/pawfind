@@ -67,6 +67,8 @@ junction table for favourites.
 - Change application status — approving one automatically marks the pet as adopted
 - Read and reply to Contact us messages
 - Pick the home page hero photo from every photo ever uploaded for a pet, or upload a brand new one
+- Curate "success story" spotlight cards on the home page — as many as you like, each with its
+  own photo(s) and caption, shown as a carousel visitors can page through
 
 ---
 
@@ -93,16 +95,18 @@ backend/database/schema.sql
 backend/database/seed.sql
 ```
 
-The first creates the database and its seven tables.
+The first creates the database and its nine tables.
 The second fills the `pets` table with sample data.
 
 Already have a database from before `pet_images`, `messages`,
-`pets.description_sr`, `messages.reply`, `pets.adopted_at`/`adopted_by` or
-`settings` existed? Run the matching file(s) from `backend/database/migrate-*.sql`
-instead — each adds just its own table or column (`migrate-pet-images.sql` also
-copies each pet's existing `image` into `pet_images`; `migrate-description-sr.sql`
-also backfills a Serbian description for the six pets from `seed.sql`) without
-touching the rest of your data.
+`pets.description_sr`, `messages.reply`, `pets.adopted_at`/`adopted_by`, `settings`
+or `success_stories`/`success_story_images` existed? Run the matching file(s) from
+`backend/database/migrate-*.sql`, in order, instead — each adds just its own table
+or column (`migrate-pet-images.sql` also copies each pet's existing `image` into
+`pet_images`; `migrate-description-sr.sql` also backfills a Serbian description for
+the six pets from `seed.sql`; `migrate-success-stories.sql` also folds any existing
+success-story photos and caption into the new multi-story shape) without touching
+the rest of your data.
 
 ### 3. Configure environment variables
 
@@ -171,10 +175,18 @@ Log out and back in — an **Admin** link appears in the navigation.
 | `GET` | `/api/admin/messages` | admin | All contact messages, unanswered ones first |
 | `PATCH` | `/api/admin/messages/:id/reply` | admin | Save a reply and open it in the admin's email client |
 | `DELETE` | `/api/admin/messages/:id` | admin | Delete a contact message |
-| `GET` | `/api/settings` | public | Site settings (currently just the home page photo) |
+| `GET` | `/api/settings` | public | Site settings (currently just the home page hero photo) |
 | `GET` | `/api/admin/images` | admin | Every photo ever uploaded for a pet, most recent first |
 | `PUT` | `/api/admin/settings/hero-image` | admin | Set the home page hero photo to an existing one |
 | `POST` | `/api/admin/settings/hero-image/upload` | admin | Upload a brand new photo and use it as the hero photo |
+| `GET` | `/api/success-stories` | public | All success stories with their photos, for the home page carousel |
+| `GET` | `/api/admin/success-stories` | admin | All success stories with their photos, for the admin dashboard |
+| `POST` | `/api/admin/success-stories` | admin | Add a new success story (caption only) |
+| `PUT` | `/api/admin/success-stories/:id` | admin | Update a story's caption |
+| `DELETE` | `/api/admin/success-stories/:id` | admin | Delete a story and its photos |
+| `POST` | `/api/admin/success-stories/:id/images` | admin | Add an existing photo to a story |
+| `POST` | `/api/admin/success-stories/:id/images/upload` | admin | Upload a brand new photo and add it to a story |
+| `DELETE` | `/api/admin/success-stories/:storyId/images/:imageId` | admin | Remove a photo from a story |
 
 **Query parameters on `/api/pets`:**
 `search`, `species`, `gender`, `age`, `size`, `location`, `personality`, `sort`
@@ -214,6 +226,15 @@ messages (standalone — no foreign keys)
 
 settings (standalone — key/value pairs, e.g. hero_image)
   setting_key (PK), setting_value
+
+success_stories             success_story_images
+  id (PK)                     id (PK)
+  text, text_sr                story_id (FK)
+  sort_order, created_at       image, sort_order, created_at
+      |                              |
+      |  1                         N |
+      +------------------------------+
+             UNIQUE(story_id, image)
 ```
 
 `applications.user_id` is nullable so visitors can apply without an account.
@@ -232,8 +253,14 @@ also opened as a pre-filled `mailto:` link, which sends through the admin's own 
 When a pet's status becomes `adopted` (an admin edit, or approving an application) `adopted_at`
 is set automatically and `adopted_by` records who adopted them; both are shown on the pet's page
 and on the "pets who found a new home" listing.
-`settings` is a generic key/value table; today it only holds `hero_image`, the photo an admin
-picked (from every photo ever uploaded for a pet) for the home page hero section.
+`settings` is a generic key/value table; today it only holds `hero_image`, the home page hero photo.
+`success_stories` powers the home page spotlight: each row is one adoption story (an English and
+an optional Serbian caption) with its own photos in `success_story_images` — one photo shows a
+single image, several show a mini slideshow with arrows and dots. With more than one story, the
+whole section becomes a carousel visitors can page through; the section is hidden entirely
+whenever there are no stories. Deleting a story cascades to its photo rows, but — like removing a
+single photo from a story — never deletes the underlying file, since it may still be used
+elsewhere (a pet's gallery, or the hero photo).
 All foreign-keyed tables above use `ON DELETE CASCADE`.
 
 ---
@@ -257,7 +284,8 @@ pawfind/
 │   │   ├── favorites.js
 │   │   ├── admin.js
 │   │   ├── contact.js
-│   │   └── settings.js
+│   │   ├── settings.js
+│   │   └── success-stories.js
 │   └── server.js            configuration and route mounting
 │
 ├── frontend/

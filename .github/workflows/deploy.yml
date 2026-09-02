@@ -1,0 +1,74 @@
+name: Deploy to server
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:        # omogućava ručno pokretanje iz Actions taba
+
+concurrency:
+  group: deploy-production  # dva deploya nikad ne idu paralelno
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ---------- 1. sanity check: da li kod uopšte startuje ----------
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Syntax check
+        run: node --check backend/server.js
+
+      # ---------- 2. deploy preko SSH ----------
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host:     ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key:      ${{ secrets.SSH_KEY }}
+          port:     ${{ secrets.SSH_PORT }}
+          script_stops: true
+          script: |
+            set -e
+            export PATH="$HOME/.nvm/versions/node/$(ls $HOME/.nvm/versions/node 2>/dev/null | tail -1)/bin:$PATH" 2>/dev/null || true
+
+            cd ${{ secrets.APP_PATH }}
+
+            echo "==> Pulling latest code"
+            git fetch --all
+            git reset --hard origin/main
+
+            echo "==> Installing production dependencies"
+            npm ci --omit=dev
+
+            echo "==> Reloading app"
+            pm2 reload pawfind --update-env || pm2 start backend/server.js --name pawfind
+            pm2 save
+
+            echo "==> Deployed: $(git rev-parse --short HEAD)"
+
+      # ---------- 3. health check ----------
+      - name: Health check
+        run: |
+          sleep 5
+          for i in 1 2 3 4 5; do
+            if curl -fsS --max-time 10 "${{ secrets.HEALTH_URL }}" | grep -q pong; then
+              echo "App je živa ✅"
+              exit 0
+            fi
+            echo "Pokušaj $i nije uspio, čekam..."
+            sleep 5
+          done
+          echo "Health check pao ❌"
+          exit 1

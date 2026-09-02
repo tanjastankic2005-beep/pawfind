@@ -1,6 +1,22 @@
 node_modules/
-*.db
 .env
+.env.local
+
+# SSH ključevi / tajne — NIKAD u git
+*_deploy_key
+*_deploy_key.pub
+*.pem
+*.ppk
+*.key
+id_rsa*
+id_ed25519*
+
+# upload-ovane slike se ne commitaju (žive samo na serveru)
+frontend/images/uploads/
+
+npm-debug.log*
+*.log
 .DS_Store
-frontend/images/uploads/*
-!frontend/images/uploads/.gitkeep
+Thumbs.db
+.vscode/
+.idea/

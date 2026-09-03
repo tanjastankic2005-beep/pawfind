@@ -3,10 +3,13 @@ const fs = require('fs');
 const path = require('path');
 const mysql = require('mysql2/promise');
 
-// Redosled je bitan — kasnije migracije zavise od tabela/kolona koje prave ranije
+// schema.sql ide prvo (sve CREATE TABLE su IF NOT EXISTS) da postavi bazu ako je prazna
+// ili da bezopasno dopuni tabele koje eventualno nedostaju na već postojećoj bazi.
+// Redosled ostalih je bitan — kasnije migracije zavise od tabela/kolona koje prave ranije
 // (npr. migrate-success-stories.sql menja tabelu koju pravi migrate-success-story-images.sql,
 // koji opet čita iz tabele settings koju pravi migrate-settings.sql).
 const MIGRATIONS = [
+  'schema.sql',
   'migrate-messages.sql',
   'migrate-message-replies.sql',
   'migrate-adopted-info.sql',

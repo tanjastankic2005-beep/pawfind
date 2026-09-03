@@ -1,7 +1,7 @@
 CREATE DATABASE IF NOT EXISTS pawfind;
 USE pawfind;
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id         INT AUTO_INCREMENT PRIMARY KEY,
   name       VARCHAR(100) NOT NULL,
   email      VARCHAR(150) NOT NULL UNIQUE,
@@ -10,7 +10,7 @@ CREATE TABLE users (
   created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE pets (
+CREATE TABLE IF NOT EXISTS pets (
   id             INT AUTO_INCREMENT PRIMARY KEY,
   name           VARCHAR(100) NOT NULL,
   species        VARCHAR(20)  NOT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE pets (
   created_at     TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE pet_images (
+CREATE TABLE IF NOT EXISTS pet_images (
   id         INT AUTO_INCREMENT PRIMARY KEY,
   pet_id     INT NOT NULL,
   image      VARCHAR(255) NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE pet_images (
   FOREIGN KEY (pet_id) REFERENCES pets(id) ON DELETE CASCADE
 );
 
-CREATE TABLE applications (
+CREATE TABLE IF NOT EXISTS applications (
   id                INT AUTO_INCREMENT PRIMARY KEY,
   user_id           INT NULL,
   applicant_name    VARCHAR(100),
@@ -66,7 +66,7 @@ CREATE TABLE applications (
   FOREIGN KEY (pet_id)  REFERENCES pets(id)  ON DELETE CASCADE
 );
 
-CREATE TABLE messages (
+CREATE TABLE IF NOT EXISTS messages (
   id         INT AUTO_INCREMENT PRIMARY KEY,
   name       VARCHAR(100) NOT NULL,
   email      VARCHAR(150) NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE messages (
   created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE favorites (
+CREATE TABLE IF NOT EXISTS favorites (
   id         INT AUTO_INCREMENT PRIMARY KEY,
   user_id    INT NOT NULL,
   pet_id     INT NOT NULL,
@@ -88,12 +88,12 @@ CREATE TABLE favorites (
   UNIQUE (user_id, pet_id)
 );
 
-CREATE TABLE settings (
+CREATE TABLE IF NOT EXISTS settings (
   setting_key   VARCHAR(50)  PRIMARY KEY,
   setting_value VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE success_stories (
+CREATE TABLE IF NOT EXISTS success_stories (
   id         INT AUTO_INCREMENT PRIMARY KEY,
   text       VARCHAR(255) NOT NULL,
   text_sr    VARCHAR(255),
@@ -101,7 +101,7 @@ CREATE TABLE success_stories (
   created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE success_story_images (
+CREATE TABLE IF NOT EXISTS success_story_images (
   id         INT AUTO_INCREMENT PRIMARY KEY,
   story_id   INT          NOT NULL,
   image      VARCHAR(255) NOT NULL,
@@ -112,4 +112,4 @@ CREATE TABLE success_story_images (
   UNIQUE (story_id, image)
 );
 
-INSERT INTO settings (setting_key, setting_value) VALUES ('hero_image', 'images/hero.jpg');
+INSERT IGNORE INTO settings (setting_key, setting_value) VALUES ('hero_image', 'images/hero.jpg');

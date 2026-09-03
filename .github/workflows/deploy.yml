@@ -38,7 +38,9 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key:      ${{ secrets.SSH_KEY }}
           port:     ${{ secrets.SSH_PORT }}
-          script_stops: true
+          script_stop: true
+          command_timeout: 10m
+          debug: true
           script: |
             set -e
             export PATH="$HOME/.nvm/versions/node/$(ls $HOME/.nvm/versions/node 2>/dev/null | tail -1)/bin:$PATH" 2>/dev/null || true

@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "nodemon backend/server.js"
+    "dev": "nodemon backend/server.js",
+    "migrate": "node backend/database/migrate.js",
+    "seed": "node backend/database/seed.js"
   },
   "repository": {
     "type": "git",

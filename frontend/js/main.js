@@ -9,6 +9,134 @@ if (navToggle && mainNav) {
 }
 
 
+// ---- Glavna navigacija ----
+// Ista na svim stranicama i gradi se ovdje, umjesto da se ručno kopira po HTML fajlovima.
+// Na telefonu isti markup upada u postojeći ☰ meni (redoslijed u DOM-u = redoslijed na ekranu).
+const NAV_LEFT_LINKS = [
+  { href: 'index.html',             key: 'nav.home',        fallback: 'Home' },
+  { href: 'pets.html',               key: 'nav.browsePets',  fallback: 'Find a pet' },
+  { href: 'pets-adopted.html',       key: 'nav.adopted',     fallback: 'Adopted stories' },
+  { href: 'index.html#how-it-works', key: 'home.howItWorks', fallback: 'How it works' }
+];
+
+// Anchor linkovi (sa #) ne broje se kao posebna stranica.
+function isCurrentPage(href) {
+  if (href.includes('#')) return false;
+  const page = href.split('/').pop();
+  const current = window.location.pathname.split('/').pop() || 'index.html';
+  return page === current;
+}
+
+function currentAttr(href) {
+  return isCurrentPage(href) ? ' aria-current="page"' : '';
+}
+
+function buildMainNav() {
+  if (!mainNav) return;
+
+  const leftLinks = NAV_LEFT_LINKS.map(link => `
+    <a href="${link.href}" class="nav-link" data-i18n="${link.key}"${currentAttr(link.href)}>${link.fallback}</a>
+  `).join('');
+
+  mainNav.innerHTML = `
+    ${leftLinks}
+    <div class="nav-right">
+      <a href="favorites.html" class="nav-link nav-fav"${currentAttr('favorites.html')}>
+        <span class="nav-fav-icon" aria-hidden="true">❤</span><span data-i18n="nav.favorites">Favorites</span>
+      </a>
+      <a href="pets.html" class="btn btn-primary btn-sm nav-adopt-btn" data-i18n="nav.adoptCta">Adopt a pet</a>
+      <div class="user-menu" id="userMenu">
+        <button type="button" class="user-menu-toggle" id="userMenuToggle" aria-haspopup="true" aria-expanded="false">
+          <span id="userMenuLabel" data-i18n="nav.account">Account</span><span class="user-menu-caret" aria-hidden="true">▾</span>
+        </button>
+        <div class="user-menu-dropdown" id="userMenuDropdown" hidden></div>
+      </div>
+    </div>
+  `;
+
+  setupUserMenuToggle();
+}
+
+// Otvaranje/zatvaranje padajućeg menija — nezavisno od toga šta je unutra.
+function setupUserMenuToggle() {
+  const userMenu         = document.querySelector('#userMenu');
+  const userMenuToggle   = document.querySelector('#userMenuToggle');
+  const userMenuDropdown = document.querySelector('#userMenuDropdown');
+  if (!userMenu || !userMenuToggle || !userMenuDropdown) return;
+
+  function closeMenu() {
+    userMenuDropdown.hidden = true;
+    userMenuToggle.setAttribute('aria-expanded', 'false');
+  }
+
+  userMenuToggle.addEventListener('click', (event) => {
+    event.stopPropagation();
+    const isOpen = userMenuToggle.getAttribute('aria-expanded') === 'true';
+    userMenuDropdown.hidden = isOpen;
+    userMenuToggle.setAttribute('aria-expanded', String(!isOpen));
+  });
+
+  // Klik izvan menija ga zatvara
+  document.addEventListener('click', (event) => {
+    if (!userMenu.contains(event.target)) closeMenu();
+  });
+
+  // Escape ga zatvara
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeMenu();
+  });
+}
+
+buildMainNav();
+
+
+// ---- Sadržaj korisničkog menija — zavisi od toga da li je neko prijavljen ----
+async function initUserMenu() {
+  const dropdown = document.querySelector('#userMenuDropdown');
+  const label    = document.querySelector('#userMenuLabel');
+  if (!dropdown || !label) return;
+
+  try {
+    const user = await getCurrentUser();
+
+    if (!user) {
+      dropdown.innerHTML = `
+        <a href="login.html" class="user-menu-item" data-i18n="nav.login">Log in</a>
+        <a href="register.html" class="user-menu-item" data-i18n="nav.signup">Sign up</a>
+      `;
+
+    } else {
+      const firstName = user.name.split(' ')[0];
+      label.removeAttribute('data-i18n');
+      label.textContent = firstName;
+
+      const adminLink = user.role === 'admin'
+        ? '<a href="admin.html" class="user-menu-item" data-i18n="nav.adminPanel">Admin panel</a>'
+        : '';
+
+      dropdown.innerHTML = `
+        <a href="profile.html" class="user-menu-item" data-i18n="nav.myProfile">My profile</a>
+        <a href="add-pet.html" class="user-menu-item" data-i18n="nav.addPet">Add a pet</a>
+        <a href="contact.html" class="user-menu-item" data-i18n="nav.contact">Contact us</a>
+        ${adminLink}
+        <hr class="user-menu-divider">
+        <button type="button" class="user-menu-item" id="userMenuLogout" data-i18n="nav.logout">Log out</button>
+      `;
+
+      document.querySelector('#userMenuLogout').addEventListener('click', async () => {
+        await logoutUser();
+        window.location.href = 'index.html';
+      });
+    }
+
+    if (typeof applyTranslations === 'function') applyTranslations();
+
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+
 // ---- Početna: slika koju je admin izabrao za hero sekciju ----
 const heroImage = document.querySelector('#heroImage');
 
@@ -150,25 +278,6 @@ window.addEventListener('pawfind:langchange', () => {
 });
 
 
-// ---- "Add a pet" i "Contact us" su dostupni i gostima i prijavljenim korisnicima ----
-function addSharedNavLinks() {
-  if (!mainNav || mainNav.querySelector('a[href="contact.html"]')) return;
-
-  const loginLink = mainNav.querySelector('a[href="login.html"]');
-
-  const linksHtml = `
-    <a href="pets-adopted.html" class="nav-link" data-i18n="nav.adopted">Adopted pets</a>
-    <a href="add-pet.html" class="nav-link" data-i18n="nav.addPet">Add a pet</a>
-    <a href="contact.html" class="nav-link" data-i18n="nav.contact">Contact us</a>
-  `;
-
-  if (loginLink) {
-    loginLink.insertAdjacentHTML('beforebegin', linksHtml);
-  } else {
-    mainNav.insertAdjacentHTML('beforeend', linksHtml);
-  }
-}
-
 function addFooterContactLink() {
   const footerNav = document.querySelector('.footer-nav');
   if (footerNav && !footerNav.querySelector('a[href="contact.html"]')) {
@@ -180,68 +289,10 @@ function addFooterContactLink() {
 }
 
 
-// ---- Navigacija za prijavljenog korisnika ----
-async function updateNav() {
-  if (!mainNav) return;
-
-  try {
-    const user = await getCurrentUser();
-
-    // Nije prijavljena — ostavi navigaciju kakva jeste, samo dodaj zajedničke linkove
-    if (!user) {
-      addSharedNavLinks();
-      if (typeof applyTranslations === 'function') applyTranslations();
-      return;
-    }
-
-    const firstName = user.name.split(' ')[0];
-
-    const adminLink = user.role === 'admin'
-      ? '<a href="admin.html" class="nav-link">Admin</a>'
-      : '';
-
-    mainNav.innerHTML = `
-      <a href="index.html" class="nav-link" data-i18n="nav.home">Home</a>
-      <a href="pets.html" class="nav-link" data-i18n="nav.browsePets">Browse Pets</a>
-      <a href="favorites.html" class="nav-link" data-i18n="nav.favorites">Favorites</a>
-      <a href="pets-adopted.html" class="nav-link" data-i18n="nav.adopted">Adopted pets</a>
-      <a href="add-pet.html" class="nav-link" data-i18n="nav.addPet">Add a pet</a>
-      <a href="contact.html" class="nav-link" data-i18n="nav.contact">Contact us</a>
-      ${adminLink}
-      <a href="profile.html" class="nav-link" id="navHiName">Hi, ${firstName}</a>
-      <button class="nav-logout" id="logoutButton" data-i18n="nav.logout">Log out</button>
-    `;
-
-    if (typeof t === 'function') {
-      document.querySelector('#navHiName').textContent = t('nav.hi', { name: firstName });
-    }
-
-    if (typeof applyTranslations === 'function') applyTranslations();
-
-    document.querySelector('#logoutButton').addEventListener('click', async () => {
-      await logoutUser();
-      window.location.href = 'index.html';
-    });
-
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-
 // Pokreni tek kad su svi skriptovi učitani
 window.addEventListener('DOMContentLoaded', () => {
-  updateNav();
+  initUserMenu();
   addFooterContactLink();
-});
-
-// Kad se promijeni jezik, ponovo ispiši "Hi, Ime" u ispravnom obliku
-window.addEventListener('pawfind:langchange', () => {
-  const hiName = document.querySelector('#navHiName');
-  if (hiName && typeof t === 'function') {
-    const firstName = hiName.textContent.replace(/^[^,]+,\s*/, '');
-    hiName.textContent = t('nav.hi', { name: firstName });
-  }
 });
 
 

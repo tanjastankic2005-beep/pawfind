@@ -60,6 +60,12 @@ body {
   color: var(--navy);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+main {
+  flex-grow: 1;
 }
 
 .container {
@@ -83,6 +89,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-md);
   flex-wrap: wrap;
   min-height: 72px;
   padding-top: 8px;
@@ -124,6 +131,7 @@ body {
   gap: 20px;
   flex-wrap: wrap;
   row-gap: 6px;
+  flex: 1;
 }
 
 .nav-link {
@@ -138,19 +146,105 @@ body {
   color: var(--primary);
 }
 
-.nav-cta {
-  background-color: var(--primary);
-  color: var(--white);
-  padding: 10px 20px;
-  border-radius: var(--radius-full);
-  font-weight: 600;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+.nav-link[aria-current="page"] {
+  color: var(--primary);
+  font-weight: 700;
 }
 
-.nav-cta:hover {
-  background-color: var(--primary-dark);
-  color: var(--white);
-  transform: translateY(-1px);
+/* ---- Desni klaster: favoriti, dugme za udomljavanje, korisnički meni ---- */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+
+.nav-fav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nav-fav-icon {
+  font-size: 0.9em;
+}
+
+.nav-adopt-btn {
+  white-space: nowrap;
+}
+
+.user-menu {
+  position: relative;
+}
+
+.user-menu-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--navy);
+  cursor: pointer;
+  padding: 6px 4px;
+}
+
+.user-menu-toggle:hover {
+  color: var(--primary);
+}
+
+.user-menu-caret {
+  font-size: 0.7em;
+  color: var(--navy-soft);
+}
+
+.user-menu-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 190px;
+  background-color: var(--white);
+  border: 1px solid var(--blue-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 8px;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 150;
+}
+
+.user-menu-dropdown:not([hidden]) {
+  display: flex;
+}
+
+.user-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--navy);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.user-menu-item:hover {
+  background-color: var(--blue-soft);
+  color: var(--primary);
+}
+
+.user-menu-divider {
+  border: none;
+  border-top: 1px solid var(--blue-border);
+  margin: 4px 0;
 }
 
 /* ---- Prekidač jezika ---- */
@@ -314,6 +408,94 @@ body {
 
 .section-head .btn {
   margin-top: var(--space-sm);
+}
+
+/* ============================================
+   7b. IZDVOJENI LJUBIMCI (početna stranica)
+   ============================================ */
+.featured-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.featured-grid .state-message {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--navy-soft);
+}
+
+.featured-card {
+  background-color: var(--white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.featured-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.featured-card-image {
+  position: relative;
+  overflow: hidden;
+}
+
+.featured-card-image img {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.featured-card:hover .featured-card-image img {
+  transform: scale(1.05);
+}
+
+.featured-card-body {
+  padding: var(--space-md) var(--space-sm) var(--space-sm);
+  text-align: center;
+}
+
+.featured-card-name {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.featured-card-meta {
+  font-size: 0.9rem;
+  color: var(--navy-soft);
+  text-transform: capitalize;
+  margin-bottom: 2px;
+}
+
+.featured-card-location {
+  font-size: 0.8rem;
+  color: var(--navy-soft);
+  opacity: 0.8;
+}
+
+.featured-more {
+  text-align: center;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 900px) {
+  .featured-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .featured-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ============================================
@@ -672,9 +854,33 @@ body {
     font-size: 1rem;
   }
 
-  .nav-cta {
+  /* Desni klaster se "razdvaja" i uklapa u istu vertikalnu listu ☰ menija */
+  .nav-right {
+    display: contents;
+  }
+
+  .nav-adopt-btn {
     text-align: center;
-    margin-top: var(--space-xs);
+    margin: var(--space-xs) 0;
+  }
+
+  /* Korisnički meni na telefonu nema svoj toggle — stavke su odmah vidljive */
+  .user-menu-toggle {
+    display: none;
+  }
+
+  .user-menu-dropdown,
+  .user-menu-dropdown[hidden] {
+    display: flex;
+    position: static;
+    box-shadow: none;
+    border: none;
+    padding: 0;
+  }
+
+  .user-menu-item {
+    padding: 12px var(--space-xs);
+    font-size: 1rem;
   }
 
   .hero-actions .btn {

@@ -9,15 +9,18 @@ const T = {
 
   en: {
     'nav.home': 'Home',
-    'nav.browsePets': 'Browse Pets',
+    'nav.browsePets': 'Find a pet',
     'nav.favorites': 'Favorites',
     'nav.addPet': 'Add a pet',
-    'nav.adopted': 'Adopted pets',
+    'nav.adopted': 'Adopted stories',
     'nav.contact': 'Contact us',
     'nav.login': 'Log in',
     'nav.signup': 'Sign up',
-    'nav.hi': 'Hi, {name}',
     'nav.logout': 'Log out',
+    'nav.adoptCta': 'Adopt a pet',
+    'nav.account': 'Account',
+    'nav.myProfile': 'My profile',
+    'nav.adminPanel': 'Admin panel',
 
     'footer.tagline': 'Find your new best friend.',
     'footer.copyright': '© 2026 Nađi šapu. A student project by Tanja Stankic.',
@@ -27,6 +30,14 @@ const T = {
     'home.text': 'Every pet on Nađi šapu is waiting for someone like you. Browse hundreds of rescues, meet the one, and give them a home.',
     'home.findPet': 'Find a pet',
     'home.howItWorks': 'How it works',
+
+    'home.featuredTitle': 'They are waiting just for you',
+    'home.featuredSubtitle': 'Find your new friend among the pets who are looking for a home right now.',
+    'home.featuredViewAll': 'See all pets',
+    'home.featuredLoading': 'Loading pets…',
+    'home.featuredEmpty': 'No pets are available right now. Please check back soon.',
+    'home.featuredError': 'Could not load pets. Is the server running?',
+
     'home.howEyebrow': 'How adoption works',
     'home.howTitle': 'Three steps to a new best friend',
     'home.howSubtitle': 'Adopting is simpler than most people think. Here is the whole process.',
@@ -284,15 +295,18 @@ const T = {
 
   sr: {
     'nav.home': 'Početna',
-    'nav.browsePets': 'Pregled ljubimaca',
+    'nav.browsePets': 'Pronađi ljubimca',
     'nav.favorites': 'Favoriti',
     'nav.addPet': 'Dodaj ljubimca',
-    'nav.adopted': 'Udomljeni ljubimci',
+    'nav.adopted': 'Udomljene priče',
     'nav.contact': 'Kontakt',
     'nav.login': 'Prijava',
     'nav.signup': 'Registracija',
-    'nav.hi': 'Zdravo, {name}',
     'nav.logout': 'Odjava',
+    'nav.adoptCta': 'Udomi ljubimca',
+    'nav.account': 'Nalog',
+    'nav.myProfile': 'Moj profil',
+    'nav.adminPanel': 'Admin panel',
 
     'footer.tagline': 'Pronađite svog novog najboljeg prijatelja.',
     'footer.copyright': '© 2026 Nađi šapu. Studentski projekat, autor: Tanja Stankić.',
@@ -302,6 +316,14 @@ const T = {
     'home.text': 'Svaki ljubimac na sajtu Nađi šapu čeka baš vas. Pregledajte stotine ljubimaca za udomljavanje, upoznajte onog pravog i pružite mu dom.',
     'home.findPet': 'Pronađi ljubimca',
     'home.howItWorks': 'Kako funkcioniše',
+
+    'home.featuredTitle': 'Oni čekaju baš tebe',
+    'home.featuredSubtitle': 'Pronađi svog novog prijatelja među ljubimcima koji trenutno traže dom.',
+    'home.featuredViewAll': 'Pogledaj sve ljubimce',
+    'home.featuredLoading': 'Učitavanje ljubimaca…',
+    'home.featuredEmpty': 'Trenutno nema dostupnih ljubimaca. Navrati uskoro.',
+    'home.featuredError': 'Ne mogu se učitati ljubimci. Da li server radi?',
+
     'home.howEyebrow': 'Kako funkcioniše udomljavanje',
     'home.howTitle': 'Tri koraka do novog najboljeg prijatelja',
     'home.howSubtitle': 'Udomljavanje je jednostavnije nego što većina ljudi misli. Evo cijelog procesa.',

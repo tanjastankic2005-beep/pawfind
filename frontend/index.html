@@ -3,23 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PawFind — Find your new best friend</title>
+  <title>Nađi šapu — Find your new best friend</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🐾%3C/text%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="images/paw-icon.svg">
   <link rel="stylesheet" href="css/style.css">
 
 </head>
 <body>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="m-paw" viewBox="0 0 64 64">
+        <ellipse cx="32" cy="43" rx="13.5" ry="10.4" fill="currentColor"/>
+        <ellipse cx="15.5" cy="27" rx="5.6" ry="7" fill="currentColor" transform="rotate(-20 15.5 27)"/>
+        <ellipse cx="26" cy="19" rx="5.8" ry="7.4" fill="currentColor" transform="rotate(-7 26 19)"/>
+        <ellipse cx="38" cy="19" rx="5.8" ry="7.4" fill="currentColor" transform="rotate(7 38 19)"/>
+        <ellipse cx="48.5" cy="27" rx="5.6" ry="7" fill="currentColor" transform="rotate(20 48.5 27)"/>
+      </symbol>
+    </defs>
+  </svg>
 
   <!-- ZAGLAVLJE -->
   <header class="site-header">
     <div class="container header-inner">
 
       <a href="index.html" class="logo">
-        <span class="logo-icon">🐾</span>
-        <span class="logo-text">PawFind</span>
+        <span class="wordmark">nađi&nbsp;<span class="caron-wrap">s<svg><use href="#m-paw"></use></svg></span>apu</span>
       </a>
 
       <nav class="main-nav">
@@ -47,7 +58,7 @@
           <h1 class="hero-title" data-i18n="home.title">Find your new best friend.</h1>
 
           <p class="hero-text" data-i18n="home.text">
-            Every pet on PawFind is waiting for someone like you.
+            Every pet on Nađi šapu is waiting for someone like you.
             Browse hundreds of rescues, meet the one, and give them a home.
           </p>
 
@@ -202,7 +213,7 @@
     <div class="container footer-inner">
 
       <div class="footer-brand">
-        <span class="logo-icon">🐾</span> PawFind
+        <span class="wordmark">nađi&nbsp;<span class="caron-wrap">s<svg><use href="#m-paw"></use></svg></span>apu</span>
         <p class="footer-tagline" data-i18n="footer.tagline">Find your new best friend.</p>
       </div>
 
@@ -216,7 +227,7 @@
     </div>
 
     <div class="container footer-bottom">
-      <p data-i18n="footer.copyright">© 2026 PawFind. A student project by Tanja Stankic.</p>
+      <p data-i18n="footer.copyright">© 2026 Nađi šapu. A student project by Tanja Stankic.</p>
     </div>
   </footer>
     <script src="js/i18n.js"></script>

@@ -20,11 +20,11 @@ const T = {
     'nav.logout': 'Log out',
 
     'footer.tagline': 'Find your new best friend.',
-    'footer.copyright': '© 2026 PawFind. A student project by Tanja Stankic.',
+    'footer.copyright': '© 2026 Nađi šapu. A student project by Tanja Stankic.',
 
     'home.eyebrow': 'Their story begins with you.',
     'home.title': 'Find your new best friend.',
-    'home.text': 'Every pet on PawFind is waiting for someone like you. Browse hundreds of rescues, meet the one, and give them a home.',
+    'home.text': 'Every pet on Nađi šapu is waiting for someone like you. Browse hundreds of rescues, meet the one, and give them a home.',
     'home.findPet': 'Find a pet',
     'home.howItWorks': 'How it works',
     'home.howEyebrow': 'How adoption works',
@@ -295,11 +295,11 @@ const T = {
     'nav.logout': 'Odjava',
 
     'footer.tagline': 'Pronađite svog novog najboljeg prijatelja.',
-    'footer.copyright': '© 2026 PawFind. Studentski projekat, autor: Tanja Stankić.',
+    'footer.copyright': '© 2026 Nađi šapu. Studentski projekat, autor: Tanja Stankić.',
 
     'home.eyebrow': 'Njihova priča počinje s tobom.',
     'home.title': 'Pronađite svog novog najboljeg prijatelja.',
-    'home.text': 'Svaki ljubimac na PawFind-u čeka baš vas. Pregledajte stotine ljubimaca za udomljavanje, upoznajte onog pravog i pružite mu dom.',
+    'home.text': 'Svaki ljubimac na sajtu Nađi šapu čeka baš vas. Pregledajte stotine ljubimaca za udomljavanje, upoznajte onog pravog i pružite mu dom.',
     'home.findPet': 'Pronađi ljubimca',
     'home.howItWorks': 'Kako funkcioniše',
     'home.howEyebrow': 'Kako funkcioniše udomljavanje',

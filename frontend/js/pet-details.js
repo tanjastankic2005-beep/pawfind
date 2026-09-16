@@ -16,7 +16,7 @@ function formatDate(iso) {
 }
 
 function renderPet(pet) {
-  document.title = `${pet.name} — PawFind`;
+  document.title = `${pet.name} — Nađi šapu`;
 
   const images = (pet.images && pet.images.length > 0)
     ? pet.images.map(img => img.image)

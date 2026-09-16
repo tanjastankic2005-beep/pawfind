@@ -98,8 +98,24 @@ body {
   color: var(--navy);
 }
 
-.logo-icon {
-  font-size: 1.5rem;
+.wordmark {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.caron-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.caron-wrap > svg {
+  position: absolute;
+  left: 50%;
+  bottom: 1em;
+  transform: translateX(-50%);
+  width: 0.75em;
+  height: 0.75em;
+  color: var(--primary);
 }
 
 .main-nav {

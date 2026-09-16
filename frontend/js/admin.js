@@ -323,7 +323,7 @@ adminMessages.addEventListener('submit', async (event) => {
 
     const mailtoUrl =
       `mailto:${encodeURIComponent(msg.email)}` +
-      `?subject=${encodeURIComponent('Re: your message to PawFind')}` +
+      `?subject=${encodeURIComponent('Re: your message to Nađi šapu')}` +
       `&body=${encodeURIComponent(reply + '\n\n---\nYour message:\n' + msg.message)}`;
     window.location.href = mailtoUrl;
 

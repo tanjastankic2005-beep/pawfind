@@ -124,6 +124,11 @@ async function logoutUser() {
 }
 
 
+async function changePassword(currentPassword, newPassword) {
+  return request('PATCH', '/api/auth/password', { currentPassword, newPassword });
+}
+
+
 async function getCurrentUser() {
   return requestOrNull('/api/auth/me', 401);
 }
@@ -165,8 +170,33 @@ async function getAdminPets() {
 }
 
 
+async function getAdminUsers() {
+  return request('GET', '/api/admin/users');
+}
+
+
+async function createUser(data) {
+  return request('POST', '/api/admin/users', data);
+}
+
+
+async function updateUser(id, data) {
+  return request('PUT', `/api/admin/users/${id}`, data);
+}
+
+
+async function deleteUser(id) {
+  return request('DELETE', `/api/admin/users/${id}`);
+}
+
+
 async function getAdminApplications() {
   return request('GET', '/api/admin/applications');
+}
+
+
+async function replyToApplication(id, reply) {
+  return request('PATCH', `/api/admin/applications/${id}/reply`, { reply });
 }
 
 

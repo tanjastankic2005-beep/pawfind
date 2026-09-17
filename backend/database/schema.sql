@@ -59,6 +59,8 @@ CREATE TABLE IF NOT EXISTS applications (
   pet_experience    TEXT,
   reason            TEXT        NOT NULL,
   preferred_contact VARCHAR(20),
+  reply             TEXT,
+  replied_at        TIMESTAMP   NULL,
   status            VARCHAR(30) NOT NULL DEFAULT 'Pending',
   created_at        TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
 

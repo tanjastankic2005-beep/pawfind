@@ -102,6 +102,33 @@ async function loadProfile() {
         ${t('favorites.countSaved', { n: favorites.length, word: tPetsWord(favorites.length) })}.
         <a href="favorites.html">${t('profile.seeAllFavorites')}</a>
       </p>
+
+      <h2 class="section-subtitle">${t('profile.changePasswordTitle')}</h2>
+      <form id="passwordForm" class="form form-flat" novalidate>
+
+        <div class="form-group">
+          <label for="currentPassword"><span>${t('profile.currentPasswordLabel')}</span> <span class="required">*</span></label>
+          <input type="password" id="currentPassword" name="currentPassword" autocomplete="current-password">
+          <p class="field-error" id="error-currentPassword"></p>
+        </div>
+
+        <div class="form-group">
+          <label for="newPassword"><span>${t('profile.newPasswordLabel')}</span> <span class="required">*</span></label>
+          <input type="password" id="newPassword" name="newPassword" autocomplete="new-password">
+          <p class="field-hint">${t('auth.passwordHint')}</p>
+          <p class="field-error" id="error-newPassword"></p>
+        </div>
+
+        <div class="form-group">
+          <label for="newPassword2"><span>${t('profile.repeatNewPasswordLabel')}</span> <span class="required">*</span></label>
+          <input type="password" id="newPassword2" name="newPassword2" autocomplete="new-password">
+          <p class="field-error" id="error-newPassword2"></p>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="passwordButton">${t('profile.changePasswordButton')}</button>
+
+      </form>
+      <div id="passwordFormMessage"></div>
     `;
 
   } catch (error) {
@@ -118,3 +145,67 @@ async function loadProfile() {
 loadProfile();
 
 window.addEventListener('pawfind:langchange', loadProfile);
+
+
+// ---- Promjena šifre ----
+function clearPasswordErrors() {
+  document.querySelectorAll('#passwordForm .field-error').forEach(p => { p.textContent = ''; });
+  const message = document.querySelector('#passwordFormMessage');
+  if (message) message.innerHTML = '';
+}
+
+profileContent.addEventListener('submit', async (event) => {
+  const form = event.target.closest('#passwordForm');
+  if (!form) return;
+
+  event.preventDefault();
+  clearPasswordErrors();
+
+  const currentPassword = document.querySelector('#currentPassword').value;
+  const newPassword     = document.querySelector('#newPassword').value;
+  const newPassword2    = document.querySelector('#newPassword2').value;
+  const passwordMessage = document.querySelector('#passwordFormMessage');
+
+  let valid = true;
+
+  if (!currentPassword) {
+    document.querySelector('#error-currentPassword').textContent = t('profile.currentPasswordRequired');
+    valid = false;
+  }
+
+  if (newPassword.length < 8) {
+    document.querySelector('#error-newPassword').textContent = t('auth.passwordTooShort');
+    valid = false;
+  }
+
+  if (newPassword !== newPassword2) {
+    document.querySelector('#error-newPassword2').textContent = t('auth.passwordsMismatch');
+    valid = false;
+  }
+
+  if (!valid) return;
+
+  const passwordButton = document.querySelector('#passwordButton');
+  passwordButton.disabled = true;
+
+  try {
+    await changePassword(currentPassword, newPassword);
+
+    form.reset();
+    passwordMessage.innerHTML = `<div class="success-box"><p>${t('profile.passwordUpdated')}</p></div>`;
+
+  } catch (error) {
+    console.error(error);
+
+    if (error.data && error.data.errors && error.data.errors.includes('Current password is incorrect.')) {
+      document.querySelector('#error-currentPassword').textContent = t('profile.currentPasswordIncorrect');
+    } else if (error.data && error.data.errors) {
+      passwordMessage.innerHTML = `<div class="error-box"><ul>${error.data.errors.map(e => `<li>${e}</li>`).join('')}</ul></div>`;
+    } else {
+      passwordMessage.innerHTML = `<div class="error-box"><p>${t('auth.genericError')}</p></div>`;
+    }
+
+  } finally {
+    passwordButton.disabled = false;
+  }
+});

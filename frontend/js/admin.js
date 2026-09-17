@@ -4,6 +4,7 @@ const adminGuard       = document.querySelector('#adminGuard');
 const adminPanel       = document.querySelector('#adminPanel');
 const statsGrid        = document.querySelector('#statsGrid');
 const petsTableBody    = document.querySelector('#petsTableBody');
+const usersTableBody   = document.querySelector('#usersTableBody');
 const adminApplications = document.querySelector('#adminApplications');
 const adminMessages     = document.querySelector('#adminMessages');
 const heroImagePicker   = document.querySelector('#heroImagePicker');
@@ -15,7 +16,15 @@ const petFormMessage   = document.querySelector('#petFormMessage');
 const newPetButton     = document.querySelector('#newPetButton');
 const petCancelButton  = document.querySelector('#petCancelButton');
 
+const userForm          = document.querySelector('#userForm');
+const userFormTitle     = document.querySelector('#userFormTitle');
+const userFormMessage   = document.querySelector('#userFormMessage');
+const newUserButton     = document.querySelector('#newUserButton');
+const userCancelButton  = document.querySelector('#userCancelButton');
+
 let allPets = [];
+let allUsers = [];
+let currentAdminId = null;
 
 // ---- Slike u formi ----
 const petImagesInput   = document.querySelector('#petImages');
@@ -108,6 +117,10 @@ function formatDate(iso) {
   });
 }
 
+function yesNo(value) {
+  return value ? 'Yes' : 'No';
+}
+
 
 // ---- Taberi ----
 document.querySelectorAll('.tab').forEach(tab => {
@@ -142,6 +155,25 @@ const PET_STATUS_CLASSES = {
   available: 'status-approved',
   adopted:   'status-completed'
 };
+
+// ---- Tabela korisnika ----
+async function loadUsersTable() {
+  allUsers = await getAdminUsers();
+
+  usersTableBody.innerHTML = allUsers.map(user => `
+    <tr>
+      <td>${user.name}</td>
+      <td>${user.email}</td>
+      <td><span class="status-badge ${user.role === 'admin' ? 'role-admin' : 'role-user'}">${user.role}</span></td>
+      <td>${formatDate(user.created_at)}</td>
+      <td class="cell-actions">
+        <button class="link-btn" data-action="edit-user" data-id="${user.id}">Edit</button>
+        ${user.id === currentAdminId ? '' : `<button class="link-btn link-danger" data-action="delete-user" data-id="${user.id}">Delete</button>`}
+      </td>
+    </tr>
+  `).join('');
+}
+
 
 async function loadPetsTable() {
   allPets = await getAdminPets();
@@ -184,16 +216,20 @@ function statusOptions(current) {
     .join('');
 }
 
-async function loadApplicationsList() {
-  const apps = await getAdminApplications();
+let allApplications = [];
 
-  if (apps.length === 0) {
-    adminApplications.innerHTML = `<p class="state-message">No applications yet.</p>`;
-    return;
-  }
+function applicationCardHtml(app) {
+  const email = app.user_email || app.applicant_email;
 
-  adminApplications.innerHTML = apps.map(app => `
-    <article class="application-card">
+  const replyBlock = app.reply ? `
+    <div class="application-reply">
+      <p class="application-reply-label">Your reply · ${formatDate(app.replied_at)}</p>
+      <p class="application-reply-text">${app.reply}</p>
+    </div>
+  ` : '';
+
+  return `
+    <article class="application-card" data-id="${app.id}">
       <img src="${app.pet_image}" alt="${app.pet_name}" class="application-image">
 
       <div class="application-info">
@@ -206,6 +242,36 @@ async function loadApplicationsList() {
         <p class="application-date">
           ${app.city || '—'} · ${app.housing_type || '—'} · ${formatDate(app.created_at)}
         </p>
+
+        <div class="application-detail hidden">
+          <p class="application-detail-row"><strong>Reason:</strong> ${app.reason}</p>
+          <p class="application-detail-row">
+            <strong>Phone:</strong> ${app.phone ? `<a href="tel:${app.phone}">${app.phone}</a>` : '—'}
+          </p>
+          <p class="application-detail-row">
+            <strong>Has a yard:</strong> ${yesNo(app.has_yard)} ·
+            <strong>Other pets at home:</strong> ${yesNo(app.has_other_pets)} ·
+            <strong>Children at home:</strong> ${yesNo(app.has_children)}
+          </p>
+          ${app.pet_experience ? `<p class="application-detail-row"><strong>Pet experience:</strong> ${app.pet_experience}</p>` : ''}
+          <p class="application-detail-row">
+            <strong>Prefers to be contacted by:</strong> ${app.preferred_contact || '—'}
+          </p>
+
+          ${replyBlock}
+
+          <form class="application-reply-form" data-id="${app.id}">
+            <textarea rows="3" placeholder="Write your reply…">${app.reply || ''}</textarea>
+            <div class="application-reply-actions">
+              <button type="submit" class="btn btn-primary btn-sm">Save reply &amp; email</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="application-actions">
+          <button type="button" class="link-btn" data-action="toggle-app-detail" data-id="${app.id}">View details</button>
+          <a class="link-btn" href="mailto:${email}">Contact</a>
+        </div>
       </div>
 
       <div class="application-side">
@@ -217,8 +283,66 @@ async function loadApplicationsList() {
         </select>
       </div>
     </article>
-  `).join('');
+  `;
 }
+
+async function loadApplicationsList() {
+  allApplications = await getAdminApplications();
+
+  if (allApplications.length === 0) {
+    adminApplications.innerHTML = `<p class="state-message">No applications yet.</p>`;
+    return;
+  }
+
+  adminApplications.innerHTML = allApplications.map(applicationCardHtml).join('');
+}
+
+adminApplications.addEventListener('click', (event) => {
+  const toggleButton = event.target.closest('[data-action="toggle-app-detail"]');
+  if (!toggleButton) return;
+
+  const detail = toggleButton.closest('.application-card').querySelector('.application-detail');
+  const willShow = detail.classList.contains('hidden');
+
+  detail.classList.toggle('hidden');
+  toggleButton.textContent = willShow ? 'Hide details' : 'View details';
+});
+
+adminApplications.addEventListener('submit', async (event) => {
+  const form = event.target.closest('.application-reply-form');
+  if (!form) return;
+
+  event.preventDefault();
+
+  const id       = Number(form.dataset.id);
+  const app      = allApplications.find(a => a.id === id);
+  const textarea = form.querySelector('textarea');
+  const reply    = textarea.value.trim();
+
+  if (!reply) return;
+
+  const submitButton = form.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+
+  try {
+    await replyToApplication(id, reply);
+
+    const email = app.user_email || app.applicant_email;
+    const mailtoUrl =
+      `mailto:${encodeURIComponent(email)}` +
+      `?subject=${encodeURIComponent('Re: your adoption application for ' + app.pet_name)}` +
+      `&body=${encodeURIComponent(reply)}`;
+    window.location.href = mailtoUrl;
+
+    await loadApplicationsList();
+    showToast('Reply saved.', 'success');
+
+  } catch (error) {
+    console.error(error);
+    showToast('Could not save the reply.');
+    submitButton.disabled = false;
+  }
+});
 
 
 // ---- Lista poruka sa Contact us stranice ----
@@ -808,6 +932,116 @@ petsTableBody.addEventListener('click', async (event) => {
 });
 
 
+// ---- Forma korisnika: otvori/zatvori ----
+function openUserForm(user) {
+  userFormMessage.innerHTML = '';
+
+  const isSelf = !!(user && user.id === currentAdminId);
+  document.querySelector('#userRole').disabled = isSelf;
+
+  if (user) {
+    userFormTitle.textContent = `Edit ${user.name}`;
+    document.querySelector('#userId').value    = user.id;
+    document.querySelector('#userName').value  = user.name;
+    document.querySelector('#userEmail').value = user.email;
+    document.querySelector('#userRole').value  = user.role;
+    document.querySelector('#userPassword').value = '';
+    document.querySelector('#userPasswordRequired').classList.add('hidden');
+    document.querySelector('#userPasswordHint').textContent = 'Leave blank to keep the current password.';
+  } else {
+    userFormTitle.textContent = 'Add a new user';
+    userForm.reset();
+    document.querySelector('#userId').value = '';
+    document.querySelector('#userPasswordRequired').classList.remove('hidden');
+    document.querySelector('#userPasswordHint').textContent = 'At least 8 characters.';
+  }
+
+  userForm.classList.remove('hidden');
+  userForm.scrollIntoView({ behavior: 'smooth' });
+}
+
+function closeUserForm() {
+  userForm.classList.add('hidden');
+  userForm.reset();
+  userFormMessage.innerHTML = '';
+  document.querySelector('#userRole').disabled = false;
+}
+
+newUserButton.addEventListener('click', () => openUserForm(null));
+userCancelButton.addEventListener('click', closeUserForm);
+
+
+// ---- Forma korisnika: snimi ----
+userForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  userFormMessage.innerHTML = '';
+
+  const id = document.querySelector('#userId').value;
+
+  const data = {
+    name:     document.querySelector('#userName').value,
+    email:    document.querySelector('#userEmail').value,
+    role:     document.querySelector('#userRole').value,
+    password: document.querySelector('#userPassword').value
+  };
+
+  try {
+    if (id) {
+      await updateUser(id, data);
+    } else {
+      await createUser(data);
+    }
+
+    closeUserForm();
+    await loadUsersTable();
+
+  } catch (error) {
+    console.error(error);
+
+    const messages = (error.data && error.data.errors)
+      ? error.data.errors
+      : [(error.data && error.data.error) || 'Something went wrong. Please try again.'];
+
+    userFormMessage.innerHTML = `
+      <div class="error-box">
+        <ul>${messages.map(m => `<li>${m}</li>`).join('')}</ul>
+      </div>
+    `;
+  }
+});
+
+
+// ---- Klik u tabeli korisnika ----
+usersTableBody.addEventListener('click', async (event) => {
+  const button = event.target.closest('button');
+  if (!button) return;
+
+  const id   = Number(button.dataset.id);
+  const user = allUsers.find(u => u.id === id);
+
+  if (button.dataset.action === 'edit-user') {
+    openUserForm(user);
+    return;
+  }
+
+  if (button.dataset.action === 'delete-user') {
+    const ok = confirm(
+      `Delete ${user.name}?\n\nThis will also delete all their applications and favourites. This cannot be undone.`
+    );
+
+    if (!ok) return;
+
+    try {
+      await deleteUser(id);
+      await loadUsersTable();
+    } catch (error) {
+      console.error(error);
+      showToast('Could not delete this user.');
+    }
+  }
+});
+
+
 // ---- Start ----
 async function init() {
   try {
@@ -837,12 +1071,14 @@ async function init() {
 
     adminSubtitle.textContent = `Signed in as ${user.name}`;
     adminPanel.classList.remove('hidden');
+    currentAdminId = user.id;
 
     await loadStats();
     await loadPetsTable();
     await loadApplicationsList();
     await loadMessagesList();
     await loadHomePagePanel();
+    await loadUsersTable();
 
   } catch (error) {
     console.error(error);

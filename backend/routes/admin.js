@@ -1,5 +1,6 @@
 const express = require('express');
 const multer  = require('multer');
+const bcrypt  = require('bcryptjs');
 const pool = require('../database/db');
 const { requireAdmin } = require('../middleware/auth');
 const { upload, imagePathOf } = require('../middleware/upload');
@@ -63,6 +64,134 @@ router.get('/pets', async (req, res) => {
 });
 
 
+// ---- KORISNICI (admin) ----
+function validateUser(body, requirePassword) {
+  const errors = [];
+
+  if (!body.name || body.name.trim().length < 2) errors.push('Please enter a name.');
+  if (!body.email || !body.email.includes('@'))  errors.push('Please enter a valid email address.');
+  if (!['user', 'admin'].includes(body.role))    errors.push('Role must be user or admin.');
+
+  if (requirePassword && (!body.password || body.password.length < 8)) {
+    errors.push('Password must be at least 8 characters.');
+  } else if (body.password && body.password.length > 0 && body.password.length < 8) {
+    errors.push('Password must be at least 8 characters.');
+  }
+
+  return errors;
+}
+
+// ---- GET /api/admin/users ----
+router.get('/users', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC'
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// ---- POST /api/admin/users ----
+router.post('/users', async (req, res) => {
+  try {
+    const errors = validateUser(req.body, true);
+    if (errors.length > 0) return res.status(400).json({ errors });
+
+    const email = req.body.email.trim().toLowerCase();
+
+    const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+    if (existing.length > 0) {
+      return res.status(409).json({ error: 'An account with this email already exists.' });
+    }
+
+    const passwordHash = await bcrypt.hash(req.body.password, 10);
+
+    const [result] = await pool.query(
+      'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
+      [req.body.name.trim(), email, passwordHash, req.body.role]
+    );
+
+    res.status(201).json({ id: result.insertId, message: 'User created' });
+
+  } catch (error) {
+    console.error('Greška pri dodavanju korisnika:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// ---- PUT /api/admin/users/:id ----
+router.put('/users/:id', async (req, res) => {
+  try {
+    const errors = validateUser(req.body, false);
+    if (errors.length > 0) return res.status(400).json({ errors });
+
+    const userId = Number(req.params.id);
+    const email  = req.body.email.trim().toLowerCase();
+
+    if (userId === req.session.userId && req.body.role !== 'admin') {
+      return res.status(400).json({ errors: ['You cannot remove your own admin access.'] });
+    }
+
+    const [existing] = await pool.query('SELECT id FROM users WHERE email = ? AND id != ?', [email, userId]);
+    if (existing.length > 0) {
+      return res.status(409).json({ error: 'An account with this email already exists.' });
+    }
+
+    const values = [req.body.name.trim(), email, req.body.role];
+    let sql = 'UPDATE users SET name = ?, email = ?, role = ?';
+
+    if (req.body.password) {
+      sql += ', password = ?';
+      values.push(await bcrypt.hash(req.body.password, 10));
+    }
+
+    sql += ' WHERE id = ?';
+    values.push(userId);
+
+    const [result] = await pool.query(sql, values);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ message: 'User updated' });
+
+  } catch (error) {
+    console.error('Greška pri izmjeni korisnika:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// ---- DELETE /api/admin/users/:id ----
+router.delete('/users/:id', async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+
+    if (userId === req.session.userId) {
+      return res.status(400).json({ error: 'You cannot delete your own account.' });
+    }
+
+    const [result] = await pool.query('DELETE FROM users WHERE id = ?', [userId]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ message: 'User deleted' });
+
+  } catch (error) {
+    console.error('Greška pri brisanju korisnika:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
 // ---- GET /api/admin/applications ----
 router.get('/applications', async (req, res) => {
   try {
@@ -74,6 +203,13 @@ router.get('/applications', async (req, res) => {
          applications.phone,
          applications.city,
          applications.housing_type,
+         applications.has_yard,
+         applications.has_other_pets,
+         applications.has_children,
+         applications.pet_experience,
+         applications.preferred_contact,
+         applications.reply,
+         applications.replied_at,
          applications.created_at,
          applications.applicant_name,
          applications.applicant_email,
@@ -90,6 +226,29 @@ router.get('/applications', async (req, res) => {
 
     res.json(rows);
 
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// ---- PATCH /api/admin/applications/:id/reply ----
+router.patch('/applications/:id/reply', async (req, res) => {
+  try {
+    const reply = (req.body.reply || '').trim();
+    if (!reply) return res.status(400).json({ errors: ['Reply cannot be empty.'] });
+
+    const [result] = await pool.query(
+      'UPDATE applications SET reply = ?, replied_at = NOW() WHERE id = ?',
+      [reply, req.params.id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+
+    res.json({ message: 'Reply saved' });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ error: 'Database error' });

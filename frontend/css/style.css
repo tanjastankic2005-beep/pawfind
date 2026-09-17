@@ -1892,7 +1892,7 @@ fieldset.form-group .checkbox:has(input:checked) {
 
 .application-card {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-sm);
   background-color: var(--white);
   border: 1px solid var(--blue-border);
@@ -1948,6 +1948,71 @@ fieldset.form-group .checkbox:has(input:checked) {
   font-size: 0.85rem;
   color: var(--primary);
   font-weight: 600;
+}
+
+.application-actions {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: 6px;
+}
+
+.application-detail {
+  margin-top: var(--space-xs);
+  padding-top: var(--space-xs);
+  border-top: 1px solid var(--blue-border);
+}
+
+.application-detail-row {
+  font-size: 0.9rem;
+  color: var(--navy-soft);
+  margin-bottom: 6px;
+}
+
+.application-detail-row strong {
+  color: var(--navy);
+}
+
+.application-reply {
+  margin-top: var(--space-xs);
+  padding: 10px 12px;
+  background-color: var(--blue-bg);
+  border-radius: var(--radius-sm);
+}
+
+.application-reply-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+
+.application-reply-text {
+  color: var(--navy);
+  white-space: pre-wrap;
+}
+
+.application-reply-form {
+  margin-top: var(--space-xs);
+}
+
+.application-reply-form textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--navy);
+  background-color: var(--blue-bg);
+  border: 1px solid var(--blue-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.application-reply-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 /* ---- Kartica poruke (Contact us) ---- */
@@ -2083,6 +2148,16 @@ fieldset.form-group .checkbox:has(input:checked) {
 .status-completed {
   background-color: #ede8fd;
   color: #5b3fc4;
+}
+
+.role-admin {
+  background-color: var(--blue-soft);
+  color: var(--primary-dark);
+}
+
+.role-user {
+  background-color: var(--blue-bg);
+  color: var(--navy-soft);
 }
 
 /* ---- responsive ---- */

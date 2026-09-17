@@ -54,6 +54,9 @@ jobs:
             echo "==> Installing production dependencies"
             npm ci --omit=dev
 
+            echo "==> Running database migrations"
+            npm run migrate
+
             echo "==> Reloading app"
             pm2 reload pawfind --update-env || pm2 start backend/server.js --name pawfind
             pm2 save

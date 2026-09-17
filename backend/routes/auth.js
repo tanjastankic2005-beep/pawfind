@@ -117,6 +117,48 @@ router.get('/me', async (req, res) => {
 });
 
 
+// ---- PATCH /api/auth/password ----
+router.patch('/password', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+    const errors = [];
+
+    if (!currentPassword) errors.push('Please enter your current password.');
+    if (!newPassword || newPassword.length < 8) errors.push('New password must be at least 8 characters.');
+
+    if (errors.length > 0) {
+      return res.status(400).json({ errors });
+    }
+
+    const [rows] = await pool.query('SELECT password FROM users WHERE id = ?', [req.session.userId]);
+
+    if (rows.length === 0) {
+      req.session.destroy(() => {});
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+
+    const match = await bcrypt.compare(currentPassword, rows[0].password);
+
+    if (!match) {
+      return res.status(400).json({ errors: ['Current password is incorrect.'] });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await pool.query('UPDATE users SET password = ? WHERE id = ?', [passwordHash, req.session.userId]);
+
+    res.json({ message: 'Password updated' });
+
+  } catch (error) {
+    console.error('Greška pri promjeni šifre:', error.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
 // ---- POST /api/auth/logout ----
 router.post('/logout', (req, res) => {
   req.session.destroy(() => {

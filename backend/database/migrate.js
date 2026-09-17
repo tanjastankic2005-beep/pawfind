@@ -12,6 +12,7 @@ const MIGRATIONS = [
   'schema.sql',
   'migrate-messages.sql',
   'migrate-message-replies.sql',
+  'migrate-application-replies.sql',
   'migrate-adopted-info.sql',
   'migrate-description-sr.sql',
   'migrate-pet-images.sql',
